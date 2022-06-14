@@ -6,6 +6,8 @@ authors = ["pavelhardzei <pavelgordei11@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+fastapi = "^0.78.0"
+uvicorn = "^0.17.6"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.19.0"
