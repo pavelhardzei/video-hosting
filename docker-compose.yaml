@@ -19,6 +19,16 @@ services:
       - .api.env
     depends_on:
       - db
+      - migrations
+  migrations:
+    build: ./services/api/
+    volumes:
+      - ./services/api/:/opt/
+    entrypoint: bash -c "alembic revision --autogenerate && alembic upgrade head"
+    env_file:
+      - .api.env
+    depends_on:
+      - db
   nginx:
     build: ./services/nginx/
     ports:
