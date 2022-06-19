@@ -24,7 +24,7 @@ services:
     build: ./services/api/
     volumes:
       - ./services/api/:/opt/
-    entrypoint: bash -c "alembic revision --autogenerate && alembic upgrade head"
+    entrypoint: bash -c "sleep 5 && alembic revision --autogenerate && alembic upgrade head"
     env_file:
       - .api.env
     depends_on:
