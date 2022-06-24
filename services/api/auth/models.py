@@ -1,11 +1,12 @@
 import enum
 
+from api.base.database.mixins import SaveDeleteDBMixin
 from auth.utils import pwd_context
 from base.database.config import Base
 from sqlalchemy import Boolean, Column, Enum, Integer, String
 
 
-class UserProfile(Base):
+class UserProfile(Base, SaveDeleteDBMixin):
     __tablename__ = 'user_profile'
 
     class Role(enum.Enum):
