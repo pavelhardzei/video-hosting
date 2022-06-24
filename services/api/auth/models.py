@@ -9,16 +9,16 @@ from sqlalchemy import Boolean, Column, Enum, Integer, String
 class UserProfile(Base, SaveDeleteDBMixin):
     __tablename__ = 'user_profile'
 
-    class Role(enum.Enum):
-        admin = 1
-        moderator = 2
-        viewer = 3
+    class RoleEnum(str, enum.Enum):
+        admin = 'admin'
+        moderator = 'moderator'
+        viewer = 'viewer'
 
     id = Column(Integer, primary_key=True)
     username = Column(String(30))
     email = Column(String(30), unique=True, nullable=False)
     is_active = Column(Boolean, default=False)
-    role = Column(Enum(Role), default=Role.viewer)
+    role = Column(Enum(RoleEnum), default=RoleEnum.viewer)
     password = Column(String(72), nullable=False)
 
     def set_password(self, plain_password):
