@@ -1,4 +1,4 @@
-from api.base.database.config import SessionLocal
+from base.database.config import SessionLocal
 
 
 class SaveDeleteDBMixin:
