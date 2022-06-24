@@ -6,6 +6,7 @@ class SaveDeleteDBMixin:
         with SessionLocal() as session:
             session.add(self)
             session.commit()
+            session.refresh(self)
 
     def delete(self):
         with SessionLocal() as session:
