@@ -12,6 +12,9 @@ router = APIRouter(
 def signup(user: UserProfileCreateSchema):
     user_model = UserProfile(**user.dict())
     user_model.set_password(user.password)
+
+    # TODO: implement email verification
+    user_model.is_active = True
     user_model.save()
 
     return user_model
