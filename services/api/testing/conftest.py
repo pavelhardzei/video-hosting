@@ -1,5 +1,6 @@
 import pytest
 from base.database.config import Base, engine
+from base.database.mixins import SaveDeleteDBMixin
 from base.main import app
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -26,7 +27,11 @@ def session(connection):
         session.execute(table.delete())
     session.commit()
 
+    default_session_class = SaveDeleteDBMixin._session_class
+    SaveDeleteDBMixin._session_class = session
+
     yield session
 
+    SaveDeleteDBMixin._session_class = default_session_class
     session.close()
     transaction.rollback()
