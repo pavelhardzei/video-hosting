@@ -1,4 +1,4 @@
-from auth import current_user
+from auth.dependencies import current_user
 from auth.models import UserProfile
 from auth.schemas import TokenSchema, UserProfileCreateSchema, UserProfileSchema
 from auth.utils import create_access_token
