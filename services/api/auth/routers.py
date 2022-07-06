@@ -16,15 +16,15 @@ router.include_router(users_router)
 
 
 @router.post('/signup/', response_model=UserProfileSchema, status_code=status.HTTP_201_CREATED)
-def signup(user: UserProfileCreateSchema):
-    user_model = UserProfile(**user.dict())
-    user_model.set_password(user.password)
+def signup(data: UserProfileCreateSchema):
+    user = UserProfile(**data.dict())
+    user.set_password(data.password)
 
     # TODO: implement email verification
-    user_model.is_active = True
-    user_model.save()
+    user.is_active = True
+    user.save()
 
-    return user_model
+    return user
 
 
 @router.post('/signin/', response_model=TokenSchema)
