@@ -10,19 +10,19 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/signin/')
 
 
 def current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(session_dependency)):
-    token_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                    detail='Could not validate credentials',
-                                    headers={'WWW-Authenticate': 'Bearer'})
-
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-    except JWTError:
-        raise token_exception
+    except JWTError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail=f'{e}',
+                            headers={'WWW-Authenticate': 'Bearer'})
 
     user_id = payload.get('id')
     user = session.query(UserProfile).filter(UserProfile.id == user_id).first()
 
     if user is None:
-        raise token_exception
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail='Could not validate credentials',
+                            headers={'WWW-Authenticate': 'Bearer'})
 
     return user
