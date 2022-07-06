@@ -1,8 +1,11 @@
+from datetime import datetime, timedelta
 from unittest.mock import ANY
 
 from auth.models import UserProfile
 from auth.utils import create_access_token
+from base.settings import settings
 from fastapi import status
+from freezegun import freeze_time
 from testing import client
 
 
@@ -60,3 +63,11 @@ def test_get_current_user_invalid_token(user_token):
                                                              f"Bearer {create_access_token({'id': 0})}"})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Could not validate credentials'}
+
+
+def test_get_current_user_token_expired(user_token):
+    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes, seconds=1)):
+        response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user_token}'})
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'Signature has expired.'}
