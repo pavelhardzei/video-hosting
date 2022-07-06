@@ -9,6 +9,7 @@ fake = Faker()
 class UserProfileFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
         model = UserProfile
+        sqlalchemy_session_persistence = 'commit'
 
     id = factory.Sequence(lambda pk: pk)
     email = factory.Sequence(lambda _: fake.email())
