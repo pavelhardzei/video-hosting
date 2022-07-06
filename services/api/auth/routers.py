@@ -1,6 +1,6 @@
-from auth.dependencies import current_user
 from auth.models import UserProfile
 from auth.schemas import TokenSchema, UserProfileCreateSchema, UserProfileSchema
+from auth.users.routers import router as users_router
 from auth.utils import create_access_token
 from base.database.dependencies import session_dependency
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -11,6 +11,8 @@ router = APIRouter(
     prefix='/auth',
     tags=['auth']
 )
+
+router.include_router(users_router)
 
 
 @router.post('/signup/', response_model=UserProfileSchema, status_code=status.HTTP_201_CREATED)
@@ -35,8 +37,3 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
     access_token = create_access_token({'id': user.id})
 
     return {'access_token': access_token, 'token_type': 'bearer'}
-
-
-@router.get('/users/me/', response_model=UserProfileSchema)
-def get_user(user: UserProfile = Depends(current_user)):
-    return user
