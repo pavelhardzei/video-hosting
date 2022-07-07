@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from unittest.mock import ANY
 
+from auth import utils
 from auth.models import UserProfile
-from auth.utils import create_access_token
 from base.settings import settings
 from fastapi import status
 from freezegun import freeze_time
@@ -60,7 +60,7 @@ def test_get_current_user_invalid_token(user_token):
     assert response.json() == {'detail': 'Signature verification failed.'}
 
     response = client.get('/api/v1/auth/users/me/', headers={'Authorization':
-                                                             f"Bearer {create_access_token({'id': 0})}"})
+                                                             f"Bearer {utils.create_access_token({'id': 0})}"})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Could not validate credentials'}
 

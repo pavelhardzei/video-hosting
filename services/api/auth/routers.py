@@ -1,7 +1,7 @@
+from auth import utils
 from auth.models import UserProfile
 from auth.schemas import TokenSchema, UserProfileCreateSchema, UserProfileSchema
 from auth.users.routers import router as users_router
-from auth.utils import create_access_token
 from base.database.dependencies import session_dependency
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -34,6 +34,6 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
     if user is None or not user.check_password(form_data.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Incorrect email or password')
-    access_token = create_access_token({'id': user.id})
+    access_token = utils.create_access_token({'id': user.id})
 
     return {'access_token': access_token, 'token_type': 'bearer'}

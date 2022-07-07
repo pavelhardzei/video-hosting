@@ -1,6 +1,6 @@
 import enum
 
-from auth.utils import pwd_context
+from auth import utils
 from base.database.config import Base
 from base.database.mixins import SaveDeleteDBMixin
 from sqlalchemy import Boolean, Column, Enum, Integer, String
@@ -22,10 +22,10 @@ class UserProfile(Base, SaveDeleteDBMixin):
     password = Column(String(72), nullable=False)
 
     def set_password(self, plain_password):
-        self.password = pwd_context.hash(plain_password)
+        self.password = utils.pwd_context.hash(plain_password)
 
     def check_password(self, plain_password):
-        return pwd_context.verify(plain_password, self.password)
+        return utils.pwd_context.verify(plain_password, self.password)
 
     def __repr__(self):
         return f'UserProfile(id={self.id}, email={self.email}, is_active={self.is_active})'
