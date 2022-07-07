@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
+from typing import Any, Dict, List
 
-from base.settings import settings
-from fastapi import HTTPException, status
+from base.settings import email_settings, settings
+from fastapi import BackgroundTasks, HTTPException, status
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -28,3 +30,12 @@ def decode_access_token(token: str):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail=f'{e}')
     return payload
+
+
+def send_mail(recipients: List[str], body: Dict[str, Any], background_tasks: BackgroundTasks):
+    message = MessageSchema(subject='Email Verification',
+                            recipients=recipients,
+                            template_body=body)
+
+    fm = FastMail(ConnectionConfig(**email_settings.dict()))
+    background_tasks.add_task(fm.send_message, message, template_name='email/verification.html')
