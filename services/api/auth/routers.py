@@ -3,7 +3,7 @@ from auth.models import UserProfile
 from auth.schemas import TokenSchema, UserProfileCreateSchema, UserProfileSchema
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -16,13 +16,13 @@ router.include_router(users_router)
 
 
 @router.post('/signup/', response_model=UserProfileSchema, status_code=status.HTTP_201_CREATED)
-def signup(data: UserProfileCreateSchema):
+def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
     user = UserProfile(**data.dict())
     user.set_password(data.password)
-
-    # TODO: implement email verification
-    user.is_active = True
     user.save()
+
+    utils.send_mail([user.email], {'id': user.id, 'token': utils.create_access_token({'id': user.id})},
+                    background_tasks)
 
     return user
 
