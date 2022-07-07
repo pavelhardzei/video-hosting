@@ -75,12 +75,12 @@ def test_get_current_user_token_expired(user_token):
 
 def test_patch_current_user(user_token):
     response = client.patch('/api/v1/auth/users/me/',
-                            json={'email': 'updated', 'username': 'updated'},
+                            json={'email': 'updated@test.com', 'username': 'updated'},
                             headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'id': ANY,
-                               'email': 'updated',
+                               'email': 'updated@test.com',
                                'username': 'updated',
                                'is_active': True,
                                'role': UserProfile.RoleEnum.viewer}
