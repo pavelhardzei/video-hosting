@@ -32,10 +32,12 @@ def decode_access_token(token: str):
     return payload
 
 
+fm = FastMail(ConnectionConfig(**email_settings.dict()))
+
+
 def send_mail(recipients: List[str], body: Dict[str, Any], background_tasks: BackgroundTasks):
     message = MessageSchema(subject='Email Verification',
                             recipients=recipients,
                             template_body=body)
 
-    fm = FastMail(ConnectionConfig(**email_settings.dict()))
     background_tasks.add_task(fm.send_message, message, template_name='email/verification.html')
