@@ -1,6 +1,6 @@
 from auth import utils
 from auth.models import UserProfile
-from auth.schemas import TokenSchema, UserProfileCreateSchema, UserProfileSchema
+from auth.schemas import DetailSchema, EmailVerificationSchema, TokenSchema, UserProfileCreateSchema, UserProfileSchema
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
@@ -25,6 +25,25 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
                     background_tasks)
 
     return user
+
+
+@router.post('/email-verification/', response_model=DetailSchema)
+def email_verification(data: EmailVerificationSchema, session: Session = Depends(session_dependency)):
+    payload = utils.decode_access_token(data.token)
+
+    if data.id != payload.get('id'):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Email verification failed')
+
+    user = session.get(UserProfile, data.id)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail='User not found')
+
+    user.is_active = True
+    user.save()
+
+    return {'detail': 'Email successfully verified'}
 
 
 @router.post('/signin/', response_model=TokenSchema)
