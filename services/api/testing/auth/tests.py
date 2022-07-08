@@ -120,28 +120,17 @@ def test_get_current_user_token_expired(user_token):
     assert response.json() == {'detail': 'Signature has expired.'}
 
 
-def test_patch_current_user(user_token):
+def test_patch_current_user(user, user_token):
     response = client.patch('/api/v1/auth/users/me/',
-                            json={'email': 'updated@test.com', 'username': 'updated'},
+                            json={'username': 'updated'},
                             headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'id': ANY,
-                               'email': 'updated@test.com',
+                               'email': user.email,
                                'username': 'updated',
                                'is_active': True,
                                'role': UserProfile.RoleEnum.viewer}
-
-
-def test_patch_current_user_unique_constraint_violation(user_token, user1):
-    response = client.patch('/api/v1/auth/users/me/',
-                            json={'email': f'{user1.email}'},
-                            headers={'Authorization': f'Bearer {user_token}'})
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail':
-                               'duplicate key value violates unique constraint \"user_profile_email_key\"\n'
-                               f'DETAIL:  Key (email)=({user1.email}) already exists.\n'}
 
 
 def test_delete_current_user(user_token, session):

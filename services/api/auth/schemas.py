@@ -28,9 +28,8 @@ class UserProfileSchema(UserProfileBaseSchema):
         orm_mode = True
 
 
-class UserProfileUpdateSchema(UserProfileBaseSchema):
+class UserProfileUpdateSchema(BaseModel):
     username: Union[str, None] = None
-    email: Union[EmailStr, None] = None
 
 
 class TokenSchema(BaseModel):
