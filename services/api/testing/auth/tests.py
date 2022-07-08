@@ -3,27 +3,42 @@ from unittest.mock import ANY
 
 from auth import utils
 from auth.models import UserProfile
-from base.settings import settings
+from auth.utils import fm
+from base.settings import email_settings, settings
 from fastapi import status
 from freezegun import freeze_time
 from testing import client
 
 
-def test_signup(session):
-    response = client.post('/api/v1/auth/signup/', json={'email': 'test@test.com',
-                                                         'username': 'test',
-                                                         'password': 'testing321'})
+def test_signup_flow(session):
+    fm.config.SUPPRESS_SEND = 1
+
+    with fm.record_messages() as outbox:
+        response = client.post('/api/v1/auth/signup/', json={'email': 'test@test.com',
+                                                             'username': 'test',
+                                                             'password': 'testing321'})
+        assert len(outbox) == 1
+        assert outbox[0]['from'] == email_settings.MAIL_FROM
+        assert outbox[0]['to'] == 'test@test.com'
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == {'id': ANY,
                                'email': 'test@test.com',
                                'username': 'test',
-                               'is_active': True,
+                               'is_active': False,
                                'role': UserProfile.RoleEnum.viewer}
 
     assert session.query(UserProfile).count() == 1
     user = session.query(UserProfile).first()
     assert user.check_password('testing321')
+
+    response = client.post('/api/v1/auth/email-verification/',
+                           json={'id': user.id, 'token': utils.create_access_token({'id': user.id})})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {'detail': 'Email successfully verified'}
+
+    session.refresh(user)
+    assert user.is_active
 
 
 def test_signin(user):
