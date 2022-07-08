@@ -52,6 +52,27 @@ def test_signup_email_already_exists(user):
                                f'DETAIL:  Key (email)=({user.email}) already exists.\n'}
 
 
+def test_email_verification_resend(user):
+    fm.config.SUPPRESS_SEND = 1
+
+    with fm.record_messages() as outbox:
+        response = client.post('/api/v1/auth/email-verification-resend/', json={'email': user.email})
+
+        assert len(outbox) == 1
+        assert outbox[0]['from'] == email_settings.MAIL_FROM
+        assert outbox[0]['to'] == user.email
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {'detail': 'Email sent'}
+
+
+def test_email_verification_resend_user_does_not_exist():
+    response = client.post('/api/v1/auth/email-verification-resend/', json={'email': 'fake@example.com'})
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {'detail': 'User not found'}
+
+
 def test_signin(user):
     response = client.post('/api/v1/auth/signin/', data={'username': 'test@test.com',
                                                          'password': 'testing321'})
