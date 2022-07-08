@@ -41,6 +41,17 @@ def test_signup_flow(session):
     assert user.is_active
 
 
+def test_signup_email_already_exists(user):
+    response = client.post('/api/v1/auth/signup/', json={'email': user.email,
+                                                         'username': 'test',
+                                                         'password': 'testing321'})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail':
+                               'duplicate key value violates unique constraint \"user_profile_email_key\"\n'
+                               f'DETAIL:  Key (email)=({user.email}) already exists.\n'}
+
+
 def test_signin(user):
     response = client.post('/api/v1/auth/signin/', data={'username': 'test@test.com',
                                                          'password': 'testing321'})
