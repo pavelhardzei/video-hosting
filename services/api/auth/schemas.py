@@ -36,3 +36,12 @@ class UserProfileUpdateSchema(UserProfileBaseSchema):
 class TokenSchema(BaseModel):
     access_token: str
     token_type: str
+
+
+class EmailVerificationSchema(BaseModel):
+    id: int
+    token: str
+
+
+class DetailSchema(BaseModel):
+    detail: str
