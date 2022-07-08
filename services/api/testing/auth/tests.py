@@ -101,6 +101,13 @@ def test_get_current_user(user_token):
                                'role': UserProfile.RoleEnum.viewer}
 
 
+def test_get_current_user_inactive(user1_token):
+    response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user1_token}'})
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'User is inactive'}
+
+
 def test_get_current_user_invalid_token(user_token):
     response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user_token}_fake'})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
