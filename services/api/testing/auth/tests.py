@@ -52,18 +52,31 @@ def test_signup_email_already_exists(user):
                                f'DETAIL:  Key (email)=({user.email}) already exists.\n'}
 
 
-def test_email_verification_resend(user):
+def test_email_verification_email_is_already_verified(user):
+    response = client.post('/api/v1/auth/email-verification/',
+                           json={'id': user.id, 'token': utils.create_access_token({'id': user.id})})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'Email is already verified'}
+
+
+def test_email_verification_resend(user1):
     fm.config.SUPPRESS_SEND = 1
 
     with fm.record_messages() as outbox:
-        response = client.post('/api/v1/auth/email-verification-resend/', json={'email': user.email})
+        response = client.post('/api/v1/auth/email-verification-resend/', json={'email': user1.email})
 
         assert len(outbox) == 1
         assert outbox[0]['from'] == email_settings.MAIL_FROM
-        assert outbox[0]['to'] == user.email
+        assert outbox[0]['to'] == user1.email
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'detail': 'Email sent'}
+
+
+def test_email_verification_resend_email_is_already_verified(user):
+    response = client.post('/api/v1/auth/email-verification-resend/', json={'email': user.email})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'Email is already verified'}
 
 
 def test_email_verification_resend_user_does_not_exist():

@@ -41,6 +41,10 @@ def email_verification(data: EmailVerificationSchema, session: Session = Depends
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail='User not found')
 
+    if user.is_active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Email is already verified')
+
     user.is_active = True
     user.save()
 
@@ -54,6 +58,10 @@ def email_verification_resend(background_tasks: BackgroundTasks, email: EmailStr
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail='User not found')
+
+    if user.is_active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Email is already verified')
 
     utils.send_mail([user.email], {'id': user.id, 'token': utils.create_access_token({'id': user.id})},
                     background_tasks)
