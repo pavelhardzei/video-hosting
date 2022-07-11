@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str = 'HS256'
     access_token_expire_minutes: int = 30
+    email_resend_timeout_seconds = 30
 
     class Config:
         env_file_encoding = 'utf-8'
