@@ -59,7 +59,7 @@ def test_email_verification_email_is_already_verified(user):
     assert response.json() == {'detail': 'Email is already verified'}
 
 
-def test_email_verification_resend(user1):
+def test_email_verification_resend(user1, user1_security):
     fm.config.SUPPRESS_SEND = 1
 
     with fm.record_messages() as outbox:
@@ -69,8 +69,20 @@ def test_email_verification_resend(user1):
         assert outbox[0]['from'] == email_settings.MAIL_FROM
         assert outbox[0]['to'] == user1.email
 
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {'detail': 'Email sent'}
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {'detail': 'Email sent'}
+
+        response = client.post('/api/v1/auth/email-verification-resend/', json={'email': user1.email})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {'detail': f'You can resend email in {settings.email_resend_timeout_seconds} seconds'}
+
+        with freeze_time(datetime.utcnow() + timedelta(seconds=settings.email_resend_timeout_seconds)):
+            response = client.post('/api/v1/auth/email-verification-resend/', json={'email': user1.email})
+
+            assert response.status_code == status.HTTP_200_OK
+            assert response.json() == {'detail': 'Email sent'}
+
+        assert len(outbox) == 2
 
 
 def test_email_verification_resend_email_is_already_verified(user):
