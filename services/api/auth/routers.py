@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from auth import utils
-from auth.models import UserProfile
+from auth.models import UserProfile, UserSecurity
 from auth.schemas import DetailSchema, EmailVerificationSchema, TokenSchema, UserProfileCreateSchema, UserProfileSchema
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
+from base.settings import settings
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
@@ -21,6 +24,9 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
     user = UserProfile(**data.dict())
     user.set_password(data.password)
     user.save()
+
+    user_security = UserSecurity(id=user.id)
+    user_security.save()
 
     utils.send_mail([user.email], {'id': user.id, 'token': utils.create_access_token({'id': user.id})},
                     background_tasks)
@@ -63,8 +69,16 @@ def email_verification_resend(background_tasks: BackgroundTasks, email: EmailStr
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail='Email is already verified')
 
+    user_security = session.query(UserSecurity).filter(UserSecurity.id == user.id).first()
+    if not (user_security.email_sent_time is None or user_security.is_resend_ready):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f'You can resend email in {settings.email_resend_timeout_seconds} seconds')
+
     utils.send_mail([user.email], {'id': user.id, 'token': utils.create_access_token({'id': user.id})},
                     background_tasks)
+
+    user_security.email_sent_time = datetime.utcnow()
+    user_security.save()
 
     return {'detail': 'Email sent'}
 
