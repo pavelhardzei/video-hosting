@@ -1,8 +1,10 @@
 import enum
+from datetime import datetime, timedelta
 
 from auth import utils
 from base.database.config import Base
 from base.database.mixins import SaveDeleteDBMixin
+from base.settings import settings
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -42,6 +44,10 @@ class UserSecurity(Base, SaveDeleteDBMixin):
     email_sent_time = Column(DateTime)
 
     user = relationship('UserProfile', back_populates='security')
+
+    @property
+    def is_resend_ready(self):
+        return datetime.utcnow() > self.email_sent_time + timedelta(seconds=settings.email_resend_timeout_seconds)
 
     def __repr__(self):
         return f'UserSecurity(id={self.id})'
