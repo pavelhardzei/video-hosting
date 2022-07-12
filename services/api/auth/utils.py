@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
+from auth.models import UserProfile
 from base.settings import email_settings, settings
 from fastapi import BackgroundTasks, HTTPException, status
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
@@ -36,3 +38,17 @@ def send_mail(recipients: List[str], body: Dict[str, Any], background_tasks: Bac
                             template_body=body)
 
     background_tasks.add_task(fm.send_message, message, template_name='email/verification.html')
+
+
+def get_user_by_id(user_id: int, session: Session):
+    user = session.query(UserProfile).filter(UserProfile.id == user_id).first()
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail='Could not validate credentials')
+
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail='User is inactive')
+
+    return user
