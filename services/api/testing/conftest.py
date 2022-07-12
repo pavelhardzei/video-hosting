@@ -11,7 +11,7 @@ from testing.auth.factories import UserProfileFactory, UserSecurityFactory
 
 register(UserProfileFactory, 'user', email='test@test.com', username='test', is_active=True)
 
-register(UserSecurityFactory, 'user_security', user=LazyFixture('user'))
+register(UserSecurityFactory, 'user_security', token=LazyFixture('user_token'), user=LazyFixture('user'))
 
 
 @pytest.fixture
