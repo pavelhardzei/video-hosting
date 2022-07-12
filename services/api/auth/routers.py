@@ -2,13 +2,13 @@ from datetime import datetime
 
 from auth import utils
 from auth.models import UserProfile, UserSecurity
-from auth.schemas import DetailSchema, EmailVerificationSchema, TokenSchema, UserProfileCreateSchema, UserProfileSchema
+from auth.schemas import (DetailSchema, EmailSchema, EmailVerificationSchema, TokenSchema, UserProfileCreateSchema,
+                          UserProfileSchema)
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
 from base.settings import settings
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import EmailStr
 from sqlalchemy.orm import Session, selectinload
 
 router = APIRouter(
@@ -57,10 +57,10 @@ def email_verification(data: EmailVerificationSchema, session: Session = Depends
 
 
 @router.post('/email-verification-resend/', response_model=DetailSchema)
-def email_verification_resend(background_tasks: BackgroundTasks, email: EmailStr = Body(embed=True),
+def email_verification_resend(background_tasks: BackgroundTasks, data: EmailSchema,
                               session: Session = Depends(session_dependency)):
     user = session.query(UserProfile).options(selectinload(UserProfile.security))\
-                                     .filter(UserProfile.email == email).first()
+                                     .filter(UserProfile.email == data.email).first()
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail='User not found')
@@ -84,11 +84,33 @@ def email_verification_resend(background_tasks: BackgroundTasks, email: EmailStr
 
 @router.post('/signin/', response_model=TokenSchema)
 def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(session_dependency)):
-    user = session.query(UserProfile).filter(UserProfile.email == form_data.username).first()
+    user = session.query(UserProfile).options(selectinload(UserProfile.security))\
+                                     .filter(UserProfile.email == form_data.username).first()
 
     if user is None or not user.check_password(form_data.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Incorrect email or password')
     access_token = utils.create_access_token({'id': user.id})
 
+    user.security.token = access_token
+    user.security.save()
+
     return {'access_token': access_token, 'token_type': 'bearer'}
+
+
+@router.post('/refresh-token/', response_model=TokenSchema)
+def refresh_token(data: TokenSchema, session: Session = Depends(session_dependency)):
+    payload = utils.decode_access_token(data.access_token, options={'verify_exp': False})
+
+    user_id = payload.get('id')
+    user = utils.get_user_by_id(user_id, session)
+
+    if user.security.token != data.access_token:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail='Only the last generated token can be refreshed')
+
+    token = utils.create_access_token({'id': user_id})
+    user.security.token = token
+    user.security.save()
+
+    return {'access_token': token, 'token_type': 'bearer'}

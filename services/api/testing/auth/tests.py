@@ -98,7 +98,7 @@ def test_email_verification_resend_user_does_not_exist():
     assert response.json() == {'detail': 'User not found'}
 
 
-def test_signin(user):
+def test_signin(user, user_security):
     response = client.post('/api/v1/auth/signin/', data={'username': 'test@test.com',
                                                          'password': 'testing321'})
     assert response.status_code == status.HTTP_200_OK
@@ -115,13 +115,39 @@ def test_signin_invalid_credentials(session, user):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_get_current_user(user_token):
+def test_refresh_token(user, user_security, user_token):
+    with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
+        response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token, 'token_type': 'bearer'})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {'access_token': ANY, 'token_type': 'bearer'}
+
+        response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token, 'token_type': 'bearer'})
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {'detail': 'Only the last generated token can be refreshed'}
+
+
+def test_validate_refreshed_token(user, user_security, user_token):
+    with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
+        response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token, 'token_type': 'bearer'})
+
+        refreshed_token = response.json().get('access_token')
+        response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {refreshed_token}'})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {'id': ANY,
+                                   'email': user.email,
+                                   'username': user.username,
+                                   'is_active': True,
+                                   'role': UserProfile.RoleEnum.viewer}
+
+
+def test_get_current_user(user, user_token):
     response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'id': ANY,
-                               'email': 'test@test.com',
-                               'username': 'test',
+                               'email': user.email,
+                               'username': user.username,
                                'is_active': True,
                                'role': UserProfile.RoleEnum.viewer}
 
