@@ -9,7 +9,7 @@ from base.settings import settings
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 router = APIRouter(
     prefix='/auth',
@@ -59,7 +59,8 @@ def email_verification(data: EmailVerificationSchema, session: Session = Depends
 @router.post('/email-verification-resend/', response_model=DetailSchema)
 def email_verification_resend(background_tasks: BackgroundTasks, email: EmailStr = Body(embed=True),
                               session: Session = Depends(session_dependency)):
-    user = session.query(UserProfile).filter(UserProfile.email == email).first()
+    user = session.query(UserProfile).options(selectinload(UserProfile.security))\
+                                     .filter(UserProfile.email == email).first()
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail='User not found')
@@ -68,16 +69,15 @@ def email_verification_resend(background_tasks: BackgroundTasks, email: EmailStr
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail='Email is already verified')
 
-    user_security = session.query(UserSecurity).filter(UserSecurity.id == user.id).first()
-    if not (user_security.email_sent_time is None or user_security.is_resend_ready):
+    if not (user.security.email_sent_time is None or user.security.is_resend_ready):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f'You can resend email in {settings.email_resend_timeout_seconds} seconds')
 
     utils.send_mail([user.email], {'id': user.id, 'token': utils.create_access_token({'id': user.id})},
                     background_tasks)
 
-    user_security.email_sent_time = datetime.utcnow()
-    user_security.save()
+    user.security.email_sent_time = datetime.utcnow()
+    user.security.save()
 
     return {'detail': 'Email sent'}
 
