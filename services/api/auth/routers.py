@@ -23,10 +23,9 @@ router.include_router(users_router)
 def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
     user = UserProfile(**data.dict())
     user.set_password(data.password)
-    user.save()
 
-    user_security = UserSecurity(id=user.id)
-    user_security.save()
+    user.security = UserSecurity()
+    user.save()
 
     utils.send_mail([user.email], {'id': user.id, 'token': utils.create_access_token({'id': user.id})},
                     background_tasks)
