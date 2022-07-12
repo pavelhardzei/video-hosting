@@ -42,5 +42,9 @@ class EmailVerificationSchema(BaseModel):
     token: str
 
 
+class EmailSchema(BaseModel):
+    email: EmailStr
+
+
 class DetailSchema(BaseModel):
     detail: str
