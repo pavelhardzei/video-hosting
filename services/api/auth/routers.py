@@ -103,7 +103,8 @@ def refresh_token(data: TokenSchema, session: Session = Depends(session_dependen
     payload = utils.decode_access_token(data.access_token, options={'verify_exp': False})
 
     user_id = payload.get('id')
-    user = utils.get_user_by_id(user_id, session)
+    user = session.query(UserProfile).options(selectinload(UserProfile.security))\
+                                     .filter(UserProfile.id == user_id).first()
 
     if user.security.token != data.access_token:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
