@@ -109,10 +109,20 @@ def test_signin_invalid_credentials(session, user):
     response = client.post('/api/v1/auth/signin/', data={'username': 'fake@fake.com',
                                                          'password': 'testing321'})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'Incorrect email or password'}
 
     response = client.post('/api/v1/auth/signin/', data={'username': 'test@test.com',
                                                          'password': 'fake_password'})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'Incorrect email or password'}
+
+
+def test_signin_user_is_inactive(user1):
+    response = client.post('/api/v1/auth/signin/', data={'username': user1.email,
+                                                         'password': 'testing321'})
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'User is inactive'}
 
 
 def test_refresh_token(user, user_security, user_token):
@@ -139,6 +149,20 @@ def test_validate_refreshed_token(user, user_security, user_token):
                                    'username': user.username,
                                    'is_active': True,
                                    'role': UserProfile.RoleEnum.viewer}
+
+
+def test_refresh_token_invalid_token():
+    response = client.post('/api/v1/auth/refresh-token/', json={'access_token': utils.create_access_token({'id': 0}),
+                                                                'token_type': 'bearer'})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'Could not validate credentials'}
+
+
+def test_refresh_token_user_is_inactive(user1_token):
+    response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user1_token,
+                                                                'token_type': 'bearer'})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'User is inactive'}
 
 
 def test_get_current_user(user, user_token):

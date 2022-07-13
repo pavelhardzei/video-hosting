@@ -90,6 +90,11 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
     if user is None or not user.check_password(form_data.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Incorrect email or password')
+
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail='User is inactive')
+
     access_token = utils.create_access_token({'id': user.id})
 
     user.security.token = access_token
@@ -105,6 +110,14 @@ def refresh_token(data: TokenSchema, session: Session = Depends(session_dependen
     user_id = payload.get('id')
     user = session.query(UserProfile).options(selectinload(UserProfile.security))\
                                      .filter(UserProfile.id == user_id).first()
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail='Could not validate credentials')
+
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail='User is inactive')
 
     if user.security.token != data.access_token:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
