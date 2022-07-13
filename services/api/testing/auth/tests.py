@@ -95,7 +95,7 @@ def test_email_verification_resend_user_does_not_exist():
     response = client.post('/api/v1/auth/email-verification-resend/', json={'email': 'fake@example.com'})
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {'detail': 'User not found'}
+    assert response.json() == {'detail': 'Not found'}
 
 
 def test_signin(user, user_security):
@@ -154,8 +154,8 @@ def test_validate_refreshed_token(user, user_security, user_token):
 def test_refresh_token_invalid_token():
     response = client.post('/api/v1/auth/refresh-token/', json={'access_token': utils.create_access_token({'id': 0}),
                                                                 'token_type': 'bearer'})
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {'detail': 'Could not validate credentials'}
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {'detail': 'Not found'}
 
 
 def test_refresh_token_user_is_inactive(user1_token):
@@ -190,8 +190,8 @@ def test_get_current_user_invalid_token(user_token):
 
     response = client.get('/api/v1/auth/users/me/', headers={'Authorization':
                                                              f"Bearer {utils.create_access_token({'id': 0})}"})
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {'detail': 'Could not validate credentials'}
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {'detail': 'Not found'}
 
 
 def test_get_current_user_token_expired(user_token):
