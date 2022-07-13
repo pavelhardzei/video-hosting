@@ -32,6 +32,11 @@ class UserProfileUpdateSchema(BaseModel):
     username: Union[str, None] = None
 
 
+class UserPasswordUpdateSchema(BaseModel):
+    old_password: str
+    new_password: str
+
+
 class TokenSchema(BaseModel):
     access_token: str
     token_type: str

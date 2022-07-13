@@ -222,3 +222,40 @@ def test_delete_current_user(user_token, session):
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert response.json() is None
     assert session.query(UserProfile).count() == 0
+
+
+def test_user_password_change_flow(user, user_token, session):
+    fm.config.SUPPRESS_SEND = 1
+
+    with fm.record_messages() as outbox:
+        response = client.put('/api/v1/auth/users/me/password/', json={'old_password': 'testing321',
+                                                                       'new_password': 'testing123'},
+                              headers={'Authorization': f'Bearer {user_token}'})
+
+        assert len(outbox) == 1
+        assert outbox[0]['from'] == email_settings.MAIL_FROM
+        assert outbox[0]['to'] == user.email
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {'detail': 'Email sent'}
+
+    session.refresh(user)
+    assert not user.is_active
+    assert user.check_password('testing123')
+
+    response = client.post('/api/v1/auth/email-verification/',
+                           json={'id': user.id, 'token': utils.create_access_token({'id': user.id})})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {'detail': 'Email successfully verified'}
+
+    session.refresh(user)
+    assert user.is_active
+
+
+def test_user_password_change_wrong_old_password(user_token):
+    response = client.put('/api/v1/auth/users/me/password/', json={'old_password': 'fake_password',
+                                                                   'new_password': 'testing123'},
+                          headers={'Authorization': f'Bearer {user_token}'})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'Old password is wrong'}
