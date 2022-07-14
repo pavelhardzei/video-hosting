@@ -30,7 +30,7 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
     user.save()
 
     utils.send_mail([user.email], {'id': user.id, 'token': utils.create_access_token({'id': user.id})},
-                    background_tasks)
+                    'email/verification.html', background_tasks)
 
     return user
 
@@ -66,7 +66,7 @@ def email_verification_resend(background_tasks: BackgroundTasks, data: EmailSche
                             detail=f'You can resend email in {settings.email_resend_timeout_seconds} seconds')
 
     utils.send_mail([user.email], {'id': user.id, 'token': utils.create_access_token({'id': user.id})},
-                    background_tasks)
+                    'email/verification.html', background_tasks)
 
     user.security.email_sent_time = datetime.utcnow()
     user.security.save()

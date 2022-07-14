@@ -30,9 +30,9 @@ def decode_access_token(token: str, **kwargs):
 fm = FastMail(ConnectionConfig(**email_settings.dict()))
 
 
-def send_mail(recipients: List[str], body: Dict[str, Any], background_tasks: BackgroundTasks):
+def send_mail(recipients: List[str], body: Dict[str, Any], template_name: str, background_tasks: BackgroundTasks):
     message = MessageSchema(subject='Email Verification',
                             recipients=recipients,
                             template_body=body)
 
-    background_tasks.add_task(fm.send_message, message, template_name='email/verification.html')
+    background_tasks.add_task(fm.send_message, message, template_name=template_name)
