@@ -32,8 +32,7 @@ def test_signup_flow(session):
     user = session.query(UserProfile).first()
     assert user.check_password('testing321')
 
-    response = client.post('/api/v1/auth/email-verification/',
-                           json={'access_token': utils.create_access_token({'id': user.id})})
+    response = client.post('/api/v1/auth/email-verification/', json={'access_token': user.security.token})
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'detail': 'Email successfully verified'}
 
@@ -52,11 +51,19 @@ def test_signup_email_already_exists(user):
                                f'DETAIL:  Key (email)=({user.email}) already exists.\n'}
 
 
-def test_email_verification_email_is_already_verified(user):
-    response = client.post('/api/v1/auth/email-verification/',
-                           json={'access_token': utils.create_access_token({'id': user.id})})
+def test_email_verification_email_is_already_verified(user, user_security):
+    response = client.post('/api/v1/auth/email-verification/', json={'access_token': user.security.token})
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'Email is already verified'}
+
+
+def test_email_verification_invalid_email(user1, user1_security):
+    with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
+        response = client.post('/api/v1/auth/email-verification/',
+                               json={'access_token': utils.create_access_token({'id': user1.id})})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {'detail': 'Token is invalid or expired'}
 
 
 def test_email_verification_resend(user1, user1_security):
@@ -102,7 +109,7 @@ def test_signin(user, user_security):
     response = client.post('/api/v1/auth/signin/', data={'username': 'test@test.com',
                                                          'password': 'testing321'})
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {'access_token': ANY}
+    assert response.json() == {'access_token': user.security.token}
 
 
 def test_signin_invalid_credentials(session, user):
@@ -129,7 +136,8 @@ def test_refresh_token(user, user_security, user_token):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {'access_token': ANY}
+        assert response.json() == {'access_token': user.security.token}
+        assert user.security.token != user_token
 
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -139,9 +147,7 @@ def test_refresh_token(user, user_security, user_token):
 def test_validate_refreshed_token(user, user_security, user_token):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
-
-        refreshed_token = response.json().get('access_token')
-        response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {refreshed_token}'})
+        response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user.security.token}'})
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {'id': ANY,
@@ -151,10 +157,12 @@ def test_validate_refreshed_token(user, user_security, user_token):
                                    'role': UserProfile.RoleEnum.viewer}
 
 
-def test_refresh_token_invalid_token():
-    response = client.post('/api/v1/auth/refresh-token/', json={'access_token': utils.create_access_token({'id': 0})})
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {'detail': 'Not found'}
+def test_refresh_token_invalid_token(user, user_security):
+    with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
+        response = client.post('/api/v1/auth/refresh-token/',
+                               json={'access_token': utils.create_access_token({'id': user.id})})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {'detail': 'Token is invalid or expired'}
 
 
 def test_refresh_token_user_is_inactive(user1_token):

@@ -37,10 +37,12 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
 @router.post('/email-verification/', response_model=DetailSchema)
 def email_verification(data: TokenSchema, session: Session = Depends(session_dependency)):
     payload = utils.decode_access_token(data.access_token)
-
     user = session.get(UserProfile, payload.get('id'))
 
     check_permissions(user, (UserEmailNotVerified, ))
+    if not user.security.check_token(data.access_token):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Token is invalid or expired')
 
     user.is_active = True
     user.save()
@@ -59,11 +61,12 @@ def email_verification_resend(background_tasks: BackgroundTasks, data: EmailSche
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f'You can resend email in {settings.email_resend_timeout_seconds} seconds')
 
-    utils.send_mail([user.email], {'token': utils.create_access_token({'id': user.id})},
-                    'email/verification.html', background_tasks)
-
     user.security.email_sent_time = datetime.utcnow()
-    user.security.save()
+    user.security.token = utils.create_access_token({'id': user.id})
+    user.save()
+
+    utils.send_mail([user.email], {'token': user.security.token},
+                    'email/verification.html', background_tasks)
 
     return {'detail': 'Email sent'}
 
