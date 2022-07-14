@@ -2,7 +2,7 @@ from datetime import datetime
 
 from auth import utils
 from auth.models import UserProfile, UserSecurity
-from auth.permissions import UserActive, UserEmailNotVerified
+from auth.permissions import UserActive, UserEmailNotVerified, UserTokenValid
 from auth.schemas import DetailSchema, EmailSchema, TokenSchema, UserProfileCreateSchema, UserProfileSchema
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
@@ -37,12 +37,9 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
 @router.post('/email-verification/', response_model=DetailSchema)
 def email_verification(data: TokenSchema, session: Session = Depends(session_dependency)):
     payload = utils.decode_access_token(data.access_token)
-    user = session.get(UserProfile, payload.get('id'))
 
-    check_permissions(user, (UserEmailNotVerified, ))
-    if not user.security.check_token(data.access_token):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail='Token is invalid or expired')
+    user = session.get(UserProfile, payload.get('id'))
+    check_permissions(user, (UserEmailNotVerified(), UserTokenValid(data.access_token)))
 
     user.is_active = True
     user.save()
@@ -54,8 +51,7 @@ def email_verification(data: TokenSchema, session: Session = Depends(session_dep
 def email_verification_resend(background_tasks: BackgroundTasks, data: EmailSchema,
                               session: Session = Depends(session_dependency)):
     user = session.query(UserProfile).filter(UserProfile.email == data.email).first()
-
-    check_permissions(user, (UserEmailNotVerified, ))
+    check_permissions(user, (UserEmailNotVerified(), ))
 
     if not (user.security.email_sent_time is None or user.security.is_resend_ready):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -79,7 +75,7 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Incorrect email or password')
 
-    check_permissions(user, (UserActive, ))
+    check_permissions(user, (UserActive(), ))
 
     user.security.token = utils.create_access_token({'id': user.id})
     user.save()
@@ -91,16 +87,10 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
 def refresh_token(data: TokenSchema, session: Session = Depends(session_dependency)):
     payload = utils.decode_access_token(data.access_token, options={'verify_exp': False})
 
-    user_id = payload.get('id')
-    user = session.query(UserProfile).filter(UserProfile.id == user_id).first()
+    user = session.query(UserProfile).filter(UserProfile.id == payload.get('id')).first()
+    check_permissions(user, (UserActive(), UserTokenValid(data.access_token)))
 
-    check_permissions(user, (UserActive, ))
-
-    if not user.security.check_token(data.access_token):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail='Token is invalid or expired')
-
-    user.security.token = utils.create_access_token({'id': user_id})
+    user.security.token = utils.create_access_token({'id': user.id})
     user.save()
 
     return {'access_token': user.security.token}
