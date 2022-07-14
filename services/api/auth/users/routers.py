@@ -48,8 +48,8 @@ def change_password_request(background_tasks: BackgroundTasks, user: UserProfile
 
 
 @router.put('/change-password/', response_model=DetailSchema)
-def password(data: UserPasswordUpdateSchema, background_tasks: BackgroundTasks,
-             user: UserProfile = Depends(current_user)):
+def change_password(data: UserPasswordUpdateSchema, background_tasks: BackgroundTasks,
+                    user: UserProfile = Depends(current_user)):
     if not user.security.check_password_token(data.password_token):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail='Token is invalid')
