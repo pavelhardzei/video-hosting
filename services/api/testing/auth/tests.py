@@ -165,7 +165,7 @@ def test_refresh_token_user_is_inactive(user1_token):
     assert response.json() == {'detail': 'User is inactive'}
 
 
-def test_get_current_user(user, user_token):
+def test_get_current_user(user, user_security, user_token):
     response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_200_OK
@@ -183,7 +183,7 @@ def test_get_current_user_inactive(user1_token):
     assert response.json() == {'detail': 'User is inactive'}
 
 
-def test_get_current_user_invalid_token(user_token):
+def test_get_current_user_invalid_token(user, user_security, user_token):
     response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user_token}_fake'})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Signature verification failed.'}
@@ -192,6 +192,13 @@ def test_get_current_user_invalid_token(user_token):
                                                              f"Bearer {utils.create_access_token({'id': 0})}"})
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json() == {'detail': 'Not found'}
+
+    with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
+        invalid_token = utils.create_access_token({'id': user.id})
+
+        response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f"Bearer {invalid_token}"})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {'detail': 'Token is invalid or expired'}
 
 
 def test_get_current_user_token_expired(user_token):
@@ -202,7 +209,7 @@ def test_get_current_user_token_expired(user_token):
     assert response.json() == {'detail': 'Signature has expired.'}
 
 
-def test_patch_current_user(user, user_token):
+def test_patch_current_user(user, user_security, user_token):
     response = client.patch('/api/v1/auth/users/me/',
                             json={'username': 'updated'},
                             headers={'Authorization': f'Bearer {user_token}'})
@@ -215,7 +222,7 @@ def test_patch_current_user(user, user_token):
                                'role': UserProfile.RoleEnum.viewer}
 
 
-def test_delete_current_user(user_token, session):
+def test_delete_current_user(user_token, user_security, session):
     response = client.delete('/api/v1/auth/users/me/',
                              headers={'Authorization': f'Bearer {user_token}'})
 
@@ -224,7 +231,7 @@ def test_delete_current_user(user_token, session):
     assert session.query(UserProfile).count() == 0
 
 
-def test_user_password_change_flow(user, user_token, session):
+def test_user_password_change_flow(user, user_security, user_token, session):
     fm.config.SUPPRESS_SEND = 1
 
     with fm.record_messages() as outbox:
@@ -252,7 +259,7 @@ def test_user_password_change_flow(user, user_token, session):
     assert user.is_active
 
 
-def test_user_password_change_wrong_old_password(user_token):
+def test_user_password_change_wrong_old_password(user_security, user_token):
     response = client.put('/api/v1/auth/users/me/password/', json={'old_password': 'fake_password',
                                                                    'new_password': 'testing123'},
                           headers={'Authorization': f'Bearer {user_token}'})
