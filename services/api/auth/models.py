@@ -24,7 +24,8 @@ class UserProfile(Base, SaveDeleteDBMixin):
     role = Column(Enum(RoleEnum), default=RoleEnum.viewer)
     password = Column(String(72), nullable=False)
 
-    security = relationship('UserSecurity', back_populates='user', uselist=False, cascade='all, delete')
+    security = relationship('UserSecurity', back_populates='user', lazy='selectin',
+                            uselist=False, cascade='all, delete')
 
     def set_password(self, plain_password):
         self.password = utils.pwd_context.hash(plain_password)

@@ -11,7 +11,7 @@ from base.permissions import check_permissions
 from base.settings import settings
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
 router = APIRouter(
     prefix='/auth',
@@ -29,7 +29,7 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
     user.security = UserSecurity()
     user.save()
 
-    utils.send_mail([user.email], {'id': user.id, 'token': utils.create_access_token({'id': user.id})},
+    utils.send_mail([user.email], {'id': user.id, 'token': user.security.token},
                     'email/verification.html', background_tasks)
 
     return user
@@ -56,8 +56,7 @@ def email_verification(data: EmailVerificationSchema, session: Session = Depends
 @router.post('/email-verification-resend/', response_model=DetailSchema)
 def email_verification_resend(background_tasks: BackgroundTasks, data: EmailSchema,
                               session: Session = Depends(session_dependency)):
-    user = session.query(UserProfile).options(selectinload(UserProfile.security))\
-                                     .filter(UserProfile.email == data.email).first()
+    user = session.query(UserProfile).filter(UserProfile.email == data.email).first()
 
     check_permissions(user, (UserEmailNotVerified, ))
 
@@ -76,8 +75,7 @@ def email_verification_resend(background_tasks: BackgroundTasks, data: EmailSche
 
 @router.post('/signin/', response_model=TokenSchema)
 def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(session_dependency)):
-    user = session.query(UserProfile).options(selectinload(UserProfile.security))\
-                                     .filter(UserProfile.email == form_data.username).first()
+    user = session.query(UserProfile).filter(UserProfile.email == form_data.username).first()
 
     if user is None or not user.check_password(form_data.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -96,8 +94,7 @@ def refresh_token(data: TokenSchema, session: Session = Depends(session_dependen
     payload = utils.decode_access_token(data.access_token, options={'verify_exp': False})
 
     user_id = payload.get('id')
-    user = session.query(UserProfile).options(selectinload(UserProfile.security))\
-                                     .filter(UserProfile.id == user_id).first()
+    user = session.query(UserProfile).filter(UserProfile.id == user_id).first()
 
     check_permissions(user, (UserActive, ))
 
