@@ -10,9 +10,11 @@ from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
-def create_access_token(data: dict):
+def create_access_token(data: dict, expire_minutes=None):
+    access_token_expire_minutes = expire_minutes if expire_minutes else settings.access_token_expire_minutes
+
     to_encode = data.copy()
-    to_encode.update({'exp': datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)})
+    to_encode.update({'exp': datetime.utcnow() + timedelta(minutes=access_token_expire_minutes)})
     encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
     return encoded_jwt
