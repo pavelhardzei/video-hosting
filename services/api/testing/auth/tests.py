@@ -251,6 +251,12 @@ def test_user_password_change_flow(user, user_security, user_token, session):
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {'detail': 'Follow the changing password link on the email'}
 
+        response = client.post('/api/v1/auth/users/me/change-password-request/',
+                               headers={'Authorization': f'Bearer {user_token}'})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {'detail': f'You can resend email in {settings.email_resend_timeout_seconds} seconds'}
+        assert len(outbox) == 1
+
         response = client.put('/api/v1/auth/users/me/change-password/',
                               json={'new_password': 'updated_password', 'password_token': user.security.password_token},
                               headers={'Authorization': f'Bearer {user_token}'})
