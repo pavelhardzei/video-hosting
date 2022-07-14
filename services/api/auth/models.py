@@ -40,7 +40,8 @@ class UserSecurity(Base, SaveDeleteDBMixin):
     __tablename__ = 'user_security'
 
     id = Column(Integer, ForeignKey('user_profile.id', ondelete='CASCADE'), primary_key=True)
-    token = Column(String(150))
+    token = Column(String(150), default=lambda context:
+                   utils.create_access_token({'id': context.get_current_parameters().get('id')}))
     email_sent_time = Column(DateTime)
 
     user = relationship('UserProfile', back_populates='security')
