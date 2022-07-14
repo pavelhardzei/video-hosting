@@ -241,34 +241,33 @@ def test_user_password_change_flow(user, user_security, user_token, session):
     fm.config.SUPPRESS_SEND = 1
 
     with fm.record_messages() as outbox:
-        response = client.put('/api/v1/auth/users/me/password/', json={'old_password': 'testing321',
-                                                                       'new_password': 'testing123'},
-                              headers={'Authorization': f'Bearer {user_token}'})
+        response = client.post('/api/v1/auth/users/me/change-password-request/',
+                               headers={'Authorization': f'Bearer {user_token}'})
 
         assert len(outbox) == 1
         assert outbox[0]['from'] == email_settings.MAIL_FROM
         assert outbox[0]['to'] == user.email
 
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {'detail': 'Email sent'}
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {'detail': 'Follow the changing password link on the email'}
 
-    session.refresh(user)
-    assert not user.is_active
-    assert user.check_password('testing123')
+        response = client.put('/api/v1/auth/users/me/change-password/',
+                              json={'new_password': 'updated_password', 'password_token': user.security.password_token},
+                              headers={'Authorization': f'Bearer {user_token}'})
 
-    response = client.post('/api/v1/auth/email-verification/',
-                           json={'access_token': utils.create_access_token({'id': user.id})})
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {'detail': 'Email successfully verified'}
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {'detail': 'Password changed'}
 
-    session.refresh(user)
-    assert user.is_active
+        session.refresh(user)
+        assert user.check_password('updated_password')
+        assert user.security.password_token is None
+        assert len(outbox) == 2
 
 
-def test_user_password_change_wrong_old_password(user_security, user_token):
-    response = client.put('/api/v1/auth/users/me/password/', json={'old_password': 'fake_password',
-                                                                   'new_password': 'testing123'},
+def test_user_password_change_invalid_token(user, user_security, user_token):
+    response = client.put('/api/v1/auth/users/me/change-password/',
+                          json={'new_password': 'updated_password', 'password_token': 'fake_password_token'},
                           headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': 'Old password is wrong'}
+    assert response.json() == {'detail': 'Token is invalid'}

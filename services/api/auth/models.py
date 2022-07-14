@@ -44,6 +44,7 @@ class UserSecurity(Base, SaveDeleteDBMixin):
     token = Column(String(150), default=lambda context:
                    utils.create_access_token({'id': context.get_current_parameters().get('id')}))
     email_sent_time = Column(DateTime)
+    password_token = Column(String(150))
 
     user = relationship('UserProfile', back_populates='security')
 
@@ -53,6 +54,9 @@ class UserSecurity(Base, SaveDeleteDBMixin):
 
     def check_token(self, token):
         return self.token == token
+
+    def check_password_token(self, password_token):
+        return self.password_token == password_token
 
     def __repr__(self):
         return f'UserSecurity(id={self.id})'

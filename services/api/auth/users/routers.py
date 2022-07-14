@@ -29,18 +29,29 @@ def delete_user(user: UserProfile = Depends(current_user)):
     return None
 
 
-@router.put('/password/', response_model=DetailSchema)
-def password(data: UserPasswordUpdateSchema, background_tasks: BackgroundTasks,
-             user: UserProfile = Depends(current_user)):
-    if not user.check_password(data.old_password):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail='Old password is wrong')
-
-    user.set_password(data.new_password)
-    user.is_active = False
+@router.post('/change-password-request/', response_model=DetailSchema)
+def change_password_request(background_tasks: BackgroundTasks, user: UserProfile = Depends(current_user)):
+    user.security.password_token = utils.create_access_token({'id': user.id})
     user.save()
 
-    utils.send_mail([user.email], {'token': utils.create_access_token({'id': user.id})},
-                    'email/verification.html', background_tasks)
+    utils.send_mail([user.email], {'token': user.security.password_token},
+                    'email/password_change.html', background_tasks)
 
-    return {'detail': 'Email sent'}
+    return {'detail': 'Follow the changing password link on the email'}
+
+
+@router.put('/change-password/', response_model=DetailSchema)
+def password(data: UserPasswordUpdateSchema, background_tasks: BackgroundTasks,
+             user: UserProfile = Depends(current_user)):
+    if not user.security.check_password_token(data.password_token):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Token is invalid')
+    utils.decode_access_token(data.password_token)
+
+    user.set_password(data.new_password)
+    user.security.password_token = None
+    user.save()
+
+    utils.send_mail([user.email], {}, 'email/password_changed.html', background_tasks)
+
+    return {'detail': 'Password changed'}
