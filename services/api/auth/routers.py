@@ -85,12 +85,10 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
 
     check_permissions(user, (UserActive, ))
 
-    access_token = utils.create_access_token({'id': user.id})
+    user.security.token = utils.create_access_token({'id': user.id})
+    user.save()
 
-    user.security.token = access_token
-    user.security.save()
-
-    return {'access_token': access_token, 'token_type': 'bearer'}
+    return {'access_token': user.security.token, 'token_type': 'bearer'}
 
 
 @router.post('/refresh-token/', response_model=TokenSchema)
