@@ -49,5 +49,8 @@ class UserSecurity(Base, SaveDeleteDBMixin):
     def is_resend_ready(self):
         return datetime.utcnow() > self.email_sent_time + timedelta(seconds=settings.email_resend_timeout_seconds)
 
+    def check_token(self, token):
+        return self.token == token
+
     def __repr__(self):
         return f'UserSecurity(id={self.id})'

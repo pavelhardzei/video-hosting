@@ -132,8 +132,8 @@ def test_refresh_token(user, user_security, user_token):
         assert response.json() == {'access_token': ANY, 'token_type': 'bearer'}
 
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token, 'token_type': 'bearer'})
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {'detail': 'Only the last generated token can be refreshed'}
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {'detail': 'Token is invalid or expired'}
 
 
 def test_validate_refreshed_token(user, user_security, user_token):

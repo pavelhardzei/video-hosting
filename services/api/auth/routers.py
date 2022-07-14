@@ -101,9 +101,9 @@ def refresh_token(data: TokenSchema, session: Session = Depends(session_dependen
 
     check_permissions(user, (UserActive, ))
 
-    if user.security.token != data.access_token:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail='Only the last generated token can be refreshed')
+    if not user.security.check_token(data.access_token):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Token is invalid or expired')
 
     user.security.token = utils.create_access_token({'id': user_id})
     user.save()

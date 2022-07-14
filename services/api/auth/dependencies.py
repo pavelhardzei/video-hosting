@@ -19,7 +19,7 @@ def current_user(token: str = Depends(oauth2_scheme), session: Session = Depends
 
     check_permissions(user, (UserActive, ))
 
-    if user.security.token != token:
+    if not user.security.check_token(token):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail='Token is invalid or expired')
 
