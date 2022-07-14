@@ -1,8 +1,12 @@
+from datetime import datetime
+
 from auth import utils
 from auth.dependencies import current_user
 from auth.models import UserProfile
+from auth.permissions import UserEmailReady
 from auth.schemas import DetailSchema, UserPasswordUpdateSchema, UserProfileSchema, UserProfileUpdateSchema
 from base.database import crud
+from base.permissions import check_permissions
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
 router = APIRouter(
@@ -31,6 +35,9 @@ def delete_user(user: UserProfile = Depends(current_user)):
 
 @router.post('/change-password-request/', response_model=DetailSchema)
 def change_password_request(background_tasks: BackgroundTasks, user: UserProfile = Depends(current_user)):
+    check_permissions(user, (UserEmailReady(), ))
+
+    user.security.email_sent_time = datetime.utcnow()
     user.security.password_token = utils.create_access_token({'id': user.id})
     user.save()
 
@@ -52,6 +59,7 @@ def password(data: UserPasswordUpdateSchema, background_tasks: BackgroundTasks,
     user.security.password_token = None
     user.save()
 
-    utils.send_mail([user.email], {}, 'email/password_changed.html', background_tasks)
+    utils.send_mail([user.email], {'token': user.security.token},
+                    'email/password_changed.html', background_tasks)
 
     return {'detail': 'Password changed'}

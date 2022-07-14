@@ -2,12 +2,11 @@ from datetime import datetime
 
 from auth import utils
 from auth.models import UserProfile, UserSecurity
-from auth.permissions import UserActive, UserEmailNotVerified, UserTokenValid
+from auth.permissions import UserActive, UserEmailNotVerified, UserEmailReady, UserTokenValid
 from auth.schemas import DetailSchema, EmailSchema, TokenSchema, UserProfileCreateSchema, UserProfileSchema
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
-from base.settings import settings
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -51,11 +50,7 @@ def email_verification(data: TokenSchema, session: Session = Depends(session_dep
 def email_verification_resend(background_tasks: BackgroundTasks, data: EmailSchema,
                               session: Session = Depends(session_dependency)):
     user = session.query(UserProfile).filter(UserProfile.email == data.email).first()
-    check_permissions(user, (UserEmailNotVerified(), ))
-
-    if not (user.security.email_sent_time is None or user.security.is_resend_ready):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f'You can resend email in {settings.email_resend_timeout_seconds} seconds')
+    check_permissions(user, (UserEmailNotVerified(), UserEmailReady()))
 
     user.security.email_sent_time = datetime.utcnow()
     user.security.token = utils.create_access_token({'id': user.id})
