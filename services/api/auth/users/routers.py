@@ -40,7 +40,7 @@ def password(data: UserPasswordUpdateSchema, background_tasks: BackgroundTasks,
     user.is_active = False
     user.save()
 
-    utils.send_mail([user.email], {'id': user.id, 'token': utils.create_access_token({'id': user.id})},
+    utils.send_mail([user.email], {'token': utils.create_access_token({'id': user.id})},
                     'email/verification.html', background_tasks)
 
     return {'detail': 'Email sent'}

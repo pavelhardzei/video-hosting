@@ -3,8 +3,7 @@ from datetime import datetime
 from auth import utils
 from auth.models import UserProfile, UserSecurity
 from auth.permissions import UserActive, UserEmailNotVerified
-from auth.schemas import (DetailSchema, EmailSchema, EmailVerificationSchema, TokenSchema, UserProfileCreateSchema,
-                          UserProfileSchema)
+from auth.schemas import DetailSchema, EmailSchema, TokenSchema, UserProfileCreateSchema, UserProfileSchema
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
@@ -29,21 +28,17 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
     user.security = UserSecurity()
     user.save()
 
-    utils.send_mail([user.email], {'id': user.id, 'token': user.security.token},
+    utils.send_mail([user.email], {'token': user.security.token},
                     'email/verification.html', background_tasks)
 
     return user
 
 
 @router.post('/email-verification/', response_model=DetailSchema)
-def email_verification(data: EmailVerificationSchema, session: Session = Depends(session_dependency)):
-    payload = utils.decode_access_token(data.token)
+def email_verification(data: TokenSchema, session: Session = Depends(session_dependency)):
+    payload = utils.decode_access_token(data.access_token)
 
-    if data.id != payload.get('id'):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail='Email verification failed')
-
-    user = session.get(UserProfile, data.id)
+    user = session.get(UserProfile, payload.get('id'))
 
     check_permissions(user, (UserEmailNotVerified, ))
 
@@ -64,7 +59,7 @@ def email_verification_resend(background_tasks: BackgroundTasks, data: EmailSche
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f'You can resend email in {settings.email_resend_timeout_seconds} seconds')
 
-    utils.send_mail([user.email], {'id': user.id, 'token': utils.create_access_token({'id': user.id})},
+    utils.send_mail([user.email], {'token': utils.create_access_token({'id': user.id})},
                     'email/verification.html', background_tasks)
 
     user.security.email_sent_time = datetime.utcnow()
@@ -86,7 +81,7 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
     user.security.token = utils.create_access_token({'id': user.id})
     user.save()
 
-    return {'access_token': user.security.token, 'token_type': 'bearer'}
+    return {'access_token': user.security.token}
 
 
 @router.post('/refresh-token/', response_model=TokenSchema)
@@ -105,4 +100,4 @@ def refresh_token(data: TokenSchema, session: Session = Depends(session_dependen
     user.security.token = utils.create_access_token({'id': user_id})
     user.save()
 
-    return {'access_token': user.security.token, 'token_type': 'bearer'}
+    return {'access_token': user.security.token}

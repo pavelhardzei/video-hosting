@@ -39,12 +39,6 @@ class UserPasswordUpdateSchema(BaseModel):
 
 class TokenSchema(BaseModel):
     access_token: str
-    token_type: str
-
-
-class EmailVerificationSchema(BaseModel):
-    id: int
-    token: str
 
 
 class EmailSchema(BaseModel):
