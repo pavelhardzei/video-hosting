@@ -31,15 +31,12 @@ def decode_token(token: str, **kwargs):
 
 
 fm = FastMail(ConnectionConfig(**email_settings.dict()))
-email_templates = {EmailTypeEnum.verification: 'email/verification.html',
-                   EmailTypeEnum.password_change: 'email/password_change.html',
-                   EmailTypeEnum.password_changed: 'email/password_changed.html'}
 
 
-def send_mail(recipients: List[str], body: Dict[str, Any],
-              email_type: EmailTypeEnum, background_tasks: BackgroundTasks):
+def send_mail(recipients: List[str], body: Dict[str, Any], email_type: EmailTypeEnum,
+              background_tasks: BackgroundTasks):
     message = MessageSchema(subject='Email Verification',
                             recipients=recipients,
                             template_body=body)
 
-    background_tasks.add_task(fm.send_message, message, template_name=email_templates[email_type])
+    background_tasks.add_task(fm.send_message, message, template_name=f'email/{email_type}.html')

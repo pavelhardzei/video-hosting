@@ -1,7 +1,10 @@
+from auth import utils
 from auth.dependencies import current_user
 from auth.models import UserProfile
-from auth.schemas.schemas import UserProfileSchema, UserProfileUpdateSchema
+from auth.permissions import UserSecondaryTokenValid
+from auth.schemas.schemas import TokenSchema, UserProfileSchema, UserProfileUpdateSchema
 from base.database import crud
+from base.permissions import check_permissions
 from fastapi import APIRouter, Depends, status
 
 router = APIRouter(
@@ -22,7 +25,10 @@ def patch_user(data: UserProfileUpdateSchema, user: UserProfile = Depends(curren
 
 
 @router.delete('/', status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user: UserProfile = Depends(current_user)):
+def delete_user(data: TokenSchema, user: UserProfile = Depends(current_user)):
+    utils.decode_token(data.token)
+    check_permissions(user, (UserSecondaryTokenValid(data.token), ))
+
     user.delete()
 
     return None

@@ -236,13 +236,34 @@ def test_patch_current_user(user, user_security, user_token):
                                'role': UserProfile.RoleEnum.viewer}
 
 
-def test_delete_current_user(user_token, user_security, session):
+def test_delete_current_user_flow(user, user_token, user_security, session):
+    fm.config.SUPPRESS_SEND = 1
+
+    with fm.record_messages() as outbox:
+        response = client.post('/api/v1/auth/email-confirmation/',
+                               json={'email': user.email, 'email_type': EmailTypeEnum.account_deletion})
+
+        assert len(outbox) == 1
+        assert outbox[0]['from'] == email_settings.MAIL_FROM
+        assert outbox[0]['to'] == user.email
+
     response = client.delete('/api/v1/auth/users/me/',
+                             json={'token': user.security.secondary_token},
                              headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert response.json() is None
     assert session.query(UserProfile).count() == 0
+
+
+def test_delete_current_user_invalid_token(user, user_token, user_security):
+    with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
+        response = client.delete('/api/v1/auth/users/me/',
+                                 json={'token': utils.create_token({'id': user.id})},
+                                 headers={'Authorization': f'Bearer {user_token}'})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {'detail': 'Token is invalid or expired'}
 
 
 def test_user_password_change_flow(user, user_security, session):
