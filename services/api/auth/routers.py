@@ -38,7 +38,7 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
 
 @router.post('/email-verification/', response_model=DetailSchema)
 def email_verification(data: TokenSchema, session: Session = Depends(session_dependency)):
-    payload = utils.decode_access_token(data.access_token)
+    payload = utils.decode_token(data.access_token)
 
     user = session.get(UserProfile, payload.get('id'))
     check_permissions(user, (UserEmailNotVerified(), UserSecondaryTokenValid(data.access_token)))
@@ -53,7 +53,7 @@ def email_verification(data: TokenSchema, session: Session = Depends(session_dep
 @router.put('/change-password/', response_model=DetailSchema)
 def change_password(data: UserPasswordUpdateSchema, background_tasks: BackgroundTasks,
                     session: Session = Depends(session_dependency)):
-    payload = utils.decode_access_token(data.token)
+    payload = utils.decode_token(data.token)
 
     user = session.get(UserProfile, payload.get('id'))
     check_permissions(user, (UserActive(), UserSecondaryTokenValid(data.token)))
@@ -78,7 +78,7 @@ def email_confirmation(background_tasks: BackgroundTasks, data: EmailSchema,
     check_permissions(user, (UserEmailReady(), ))
 
     user.security.email_sent_time = datetime.utcnow()
-    user.security.secondary_token = utils.create_access_token({'id': user.id})
+    user.security.secondary_token = utils.create_token({'id': user.id})
     user.save()
 
     utils.send_mail([user.email], {'token': user.security.secondary_token},
@@ -97,7 +97,7 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
 
     check_permissions(user, (UserActive(), ))
 
-    user.security.access_token = utils.create_access_token({'id': user.id})
+    user.security.access_token = utils.create_token({'id': user.id})
     user.save()
 
     return {'access_token': user.security.access_token}
@@ -105,12 +105,12 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
 
 @router.post('/refresh-token/', response_model=TokenSchema)
 def refresh_token(data: TokenSchema, session: Session = Depends(session_dependency)):
-    payload = utils.decode_access_token(data.access_token, options={'verify_exp': False})
+    payload = utils.decode_token(data.access_token, options={'verify_exp': False})
 
     user = session.get(UserProfile, payload.get('id'))
     check_permissions(user, (UserActive(), UserAccessTokenValid(data.access_token)))
 
-    user.security.access_token = utils.create_access_token({'id': user.id})
+    user.security.access_token = utils.create_token({'id': user.id})
     user.save()
 
     return {'access_token': user.security.access_token}

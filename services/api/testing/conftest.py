@@ -16,7 +16,7 @@ register(UserSecurityFactory, 'user_security', access_token=LazyFixture('user_to
 
 @pytest.fixture
 def user_token(user):
-    return utils.create_access_token({'id': user.id})
+    return utils.create_token({'id': user.id})
 
 
 @pytest.fixture(scope='module')

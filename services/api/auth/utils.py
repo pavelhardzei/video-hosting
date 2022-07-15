@@ -11,7 +11,7 @@ from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
-def create_access_token(data: dict, expire_minutes=None):
+def create_token(data: dict, expire_minutes=None):
     access_token_expire_minutes = expire_minutes if expire_minutes else settings.access_token_expire_minutes
 
     to_encode = data.copy()
@@ -21,7 +21,7 @@ def create_access_token(data: dict, expire_minutes=None):
     return encoded_jwt
 
 
-def decode_access_token(token: str, **kwargs):
+def decode_token(token: str, **kwargs):
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm], **kwargs)
     except JWTError as e:
