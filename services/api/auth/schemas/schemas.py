@@ -28,7 +28,7 @@ class UserProfileUpdateSchema(BaseModel):
 
 class UserPasswordUpdateSchema(BaseModel):
     new_password: str
-    password_token: str
+    token: str
 
 
 class TokenSchema(BaseModel):

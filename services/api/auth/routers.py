@@ -5,7 +5,8 @@ from auth.models import UserProfile, UserSecurity
 from auth.permissions import (UserAccessTokenValid, UserActive, UserEmailNotVerified, UserEmailReady,
                               UserSecondaryTokenValid)
 from auth.schemas.enums import EmailTypeEnum
-from auth.schemas.schemas import DetailSchema, EmailSchema, TokenSchema, UserProfileCreateSchema, UserProfileSchema
+from auth.schemas.schemas import (DetailSchema, EmailSchema, TokenSchema, UserPasswordUpdateSchema,
+                                  UserProfileCreateSchema, UserProfileSchema)
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
@@ -49,6 +50,24 @@ def email_verification(data: TokenSchema, session: Session = Depends(session_dep
     return {'detail': 'Email successfully verified'}
 
 
+@router.put('/change-password/', response_model=DetailSchema)
+def change_password(data: UserPasswordUpdateSchema, background_tasks: BackgroundTasks,
+                    session: Session = Depends(session_dependency)):
+    payload = utils.decode_access_token(data.token)
+
+    user = session.get(UserProfile, payload.get('id'))
+    check_permissions(user, (UserActive(), UserSecondaryTokenValid(data.token)))
+
+    user.set_password(data.new_password)
+    user.security.secondary_token = None
+    user.save()
+
+    utils.send_mail([user.email], {'detal': 'password changed'},
+                    EmailTypeEnum.password_changed, background_tasks)
+
+    return {'detail': 'Password changed'}
+
+
 @router.post('/email-confirmation/', response_model=DetailSchema)
 def email_confirmation(background_tasks: BackgroundTasks, data: EmailSchema,
                        session: Session = Depends(session_dependency)):
@@ -88,7 +107,7 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
 def refresh_token(data: TokenSchema, session: Session = Depends(session_dependency)):
     payload = utils.decode_access_token(data.access_token, options={'verify_exp': False})
 
-    user = session.query(UserProfile).filter(UserProfile.id == payload.get('id')).first()
+    user = session.get(UserProfile, payload.get('id'))
     check_permissions(user, (UserActive(), UserAccessTokenValid(data.access_token)))
 
     user.security.access_token = utils.create_access_token({'id': user.id})
