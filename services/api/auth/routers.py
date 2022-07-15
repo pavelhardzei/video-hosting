@@ -42,6 +42,7 @@ def email_verification(data: TokenSchema, session: Session = Depends(session_dep
     check_permissions(user, (UserEmailNotVerified(), UserTokenValid(data.access_token)))
 
     user.is_active = True
+    user.security.token = None
     user.save()
 
     return {'detail': 'Email successfully verified'}

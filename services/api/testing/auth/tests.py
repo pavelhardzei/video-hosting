@@ -39,6 +39,7 @@ def test_signup_flow(session):
 
     session.refresh(user)
     assert user.is_active
+    assert user.security.token is None
 
 
 def test_signup_email_already_exists(user):
