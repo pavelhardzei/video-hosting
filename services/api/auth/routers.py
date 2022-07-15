@@ -2,7 +2,8 @@ from datetime import datetime
 
 from auth import utils
 from auth.models import UserProfile, UserSecurity
-from auth.permissions import UserActive, UserEmailNotVerified, UserEmailReady, UserTokenValid
+from auth.permissions import (UserAccessTokenValid, UserActive, UserEmailNotVerified, UserEmailReady,
+                              UserSecondaryTokenValid)
 from auth.schemas.enums import EmailTypeEnum
 from auth.schemas.schemas import DetailSchema, EmailSchema, TokenSchema, UserProfileCreateSchema, UserProfileSchema
 from auth.users.routers import router as users_router
@@ -28,7 +29,7 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
     user.security = UserSecurity()
     user.save()
 
-    utils.send_mail([user.email], {'token': user.security.token},
+    utils.send_mail([user.email], {'token': user.security.secondary_token},
                     EmailTypeEnum.verification, background_tasks)
 
     return user
@@ -39,10 +40,10 @@ def email_verification(data: TokenSchema, session: Session = Depends(session_dep
     payload = utils.decode_access_token(data.access_token)
 
     user = session.get(UserProfile, payload.get('id'))
-    check_permissions(user, (UserEmailNotVerified(), UserTokenValid(data.access_token)))
+    check_permissions(user, (UserEmailNotVerified(), UserSecondaryTokenValid(data.access_token)))
 
     user.is_active = True
-    user.security.token = None
+    user.security.secondary_token = None
     user.save()
 
     return {'detail': 'Email successfully verified'}
@@ -58,10 +59,10 @@ def email_confirmation(background_tasks: BackgroundTasks, data: EmailSchema,
     check_permissions(user, (UserEmailReady(), ))
 
     user.security.email_sent_time = datetime.utcnow()
-    user.security.token = utils.create_access_token({'id': user.id})
+    user.security.secondary_token = utils.create_access_token({'id': user.id})
     user.save()
 
-    utils.send_mail([user.email], {'token': user.security.token},
+    utils.send_mail([user.email], {'token': user.security.secondary_token},
                     data.email_type, background_tasks)
 
     return {'detail': 'Email sent'}
@@ -77,10 +78,10 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
 
     check_permissions(user, (UserActive(), ))
 
-    user.security.token = utils.create_access_token({'id': user.id})
+    user.security.access_token = utils.create_access_token({'id': user.id})
     user.save()
 
-    return {'access_token': user.security.token}
+    return {'access_token': user.security.access_token}
 
 
 @router.post('/refresh-token/', response_model=TokenSchema)
@@ -88,9 +89,9 @@ def refresh_token(data: TokenSchema, session: Session = Depends(session_dependen
     payload = utils.decode_access_token(data.access_token, options={'verify_exp': False})
 
     user = session.query(UserProfile).filter(UserProfile.id == payload.get('id')).first()
-    check_permissions(user, (UserActive(), UserTokenValid(data.access_token)))
+    check_permissions(user, (UserActive(), UserAccessTokenValid(data.access_token)))
 
-    user.security.token = utils.create_access_token({'id': user.id})
+    user.security.access_token = utils.create_access_token({'id': user.id})
     user.save()
 
-    return {'access_token': user.security.token}
+    return {'access_token': user.security.access_token}

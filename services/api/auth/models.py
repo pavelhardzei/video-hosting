@@ -41,10 +41,10 @@ class UserSecurity(Base, SaveDeleteDBMixin):
     __tablename__ = 'user_security'
 
     id = Column(Integer, ForeignKey('user_profile.id', ondelete='CASCADE'), primary_key=True)
-    token = Column(String(150), default=lambda context:
-                   utils.create_access_token({'id': context.get_current_parameters().get('id')}))
+    access_token = Column(String(150))
+    secondary_token = Column(String(150), default=lambda context:
+                             utils.create_access_token({'id': context.get_current_parameters().get('id')}))
     email_sent_time = Column(DateTime)
-    password_token = Column(String(150))
 
     user = relationship('UserProfile', back_populates='security')
 
@@ -52,11 +52,11 @@ class UserSecurity(Base, SaveDeleteDBMixin):
     def is_resend_ready(self):
         return datetime.utcnow() > self.email_sent_time + timedelta(seconds=settings.email_resend_timeout_seconds)
 
-    def check_token(self, token):
-        return self.token == token
+    def check_access_token(self, access_token):
+        return self.access_token == access_token
 
-    def check_password_token(self, password_token):
-        return self.password_token == password_token
+    def check_secondary_token(self, secondary_token):
+        return self.secondary_token == secondary_token
 
     def __repr__(self):
         return f'UserSecurity(id={self.id})'

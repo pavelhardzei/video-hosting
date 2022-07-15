@@ -1,6 +1,6 @@
 from auth import utils
 from auth.models import UserProfile
-from auth.permissions import UserActive, UserTokenValid
+from auth.permissions import UserAccessTokenValid, UserActive
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
 from fastapi import Depends
@@ -14,6 +14,6 @@ def current_user(token: str = Depends(oauth2_scheme), session: Session = Depends
     payload = utils.decode_access_token(token)
 
     user = session.query(UserProfile).filter(UserProfile.id == payload.get('id')).first()
-    check_permissions(user, (UserActive(), UserTokenValid(token)))
+    check_permissions(user, (UserActive(), UserAccessTokenValid(token)))
 
     return user

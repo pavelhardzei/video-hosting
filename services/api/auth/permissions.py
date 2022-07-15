@@ -24,11 +24,21 @@ class UserEmailReady(BasePermission):
                                 detail=f'You can resend email in {settings.email_resend_timeout_seconds} seconds')
 
 
-class UserTokenValid(BasePermission):
+class UserAccessTokenValid(BasePermission):
     def __init__(self, token):
         self.token = token
 
     def check_object_permission(self, obj):
-        if not obj.security.check_token(self.token):
+        if not obj.security.check_access_token(self.token):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail='Token is invalid or expired')
+
+
+class UserSecondaryTokenValid(BasePermission):
+    def __init__(self, token):
+        self.token = token
+
+    def check_object_permission(self, obj):
+        if not obj.security.check_secondary_token(self.token):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail='Token is invalid or expired')

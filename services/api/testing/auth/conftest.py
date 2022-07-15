@@ -5,7 +5,7 @@ from testing.auth.factories import UserProfileFactory, UserSecurityFactory
 
 register(UserProfileFactory, 'user1')
 
-register(UserSecurityFactory, 'user1_security', token=LazyFixture('user1_token'), user=LazyFixture('user1'))
+register(UserSecurityFactory, 'user1_security', access_token=LazyFixture('user1_token'), user=LazyFixture('user1'))
 
 
 @pytest.fixture

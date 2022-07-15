@@ -24,7 +24,7 @@ class UserSecurityFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = UserSecurity
         sqlalchemy_session_persistence = 'commit'
 
-    token = None
+    access_token = None
     email_sent_time = None
 
     user = factory.SubFactory(UserProfileFactory)

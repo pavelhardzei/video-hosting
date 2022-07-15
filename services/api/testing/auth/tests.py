@@ -33,13 +33,13 @@ def test_signup_flow(session):
     user = session.query(UserProfile).first()
     assert user.check_password('testing321')
 
-    response = client.post('/api/v1/auth/email-verification/', json={'access_token': user.security.token})
+    response = client.post('/api/v1/auth/email-verification/', json={'access_token': user.security.secondary_token})
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'detail': 'Email successfully verified'}
 
     session.refresh(user)
     assert user.is_active
-    assert user.security.token is None
+    assert user.security.secondary_token is None
 
 
 def test_signup_email_already_exists(user):
@@ -54,7 +54,7 @@ def test_signup_email_already_exists(user):
 
 
 def test_email_verification_email_is_already_verified(user, user_security):
-    response = client.post('/api/v1/auth/email-verification/', json={'access_token': user.security.token})
+    response = client.post('/api/v1/auth/email-verification/', json={'access_token': user.security.secondary_token})
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'Email is already verified'}
 
@@ -116,7 +116,7 @@ def test_signin(user, user_security):
     response = client.post('/api/v1/auth/signin/', data={'username': 'test@test.com',
                                                          'password': 'testing321'})
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {'access_token': user.security.token}
+    assert response.json() == {'access_token': user.security.access_token}
 
 
 def test_signin_invalid_credentials(session, user):
@@ -143,8 +143,8 @@ def test_refresh_token(user, user_security, user_token):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {'access_token': user.security.token}
-        assert user.security.token != user_token
+        assert response.json() == {'access_token': user.security.access_token}
+        assert user.security.access_token != user_token
 
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -154,7 +154,8 @@ def test_refresh_token(user, user_security, user_token):
 def test_validate_refreshed_token(user, user_security, user_token):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
-        response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user.security.token}'})
+        response = client.get('/api/v1/auth/users/me/',
+                              headers={'Authorization': f'Bearer {user.security.access_token}'})
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {'id': ANY,
@@ -265,7 +266,9 @@ def test_user_password_change_flow(user, user_security, user_token, session):
         assert len(outbox) == 1
 
         response = client.put('/api/v1/auth/users/me/change-password/',
-                              json={'new_password': 'updated_password', 'password_token': user.security.password_token},
+                              json={
+                                  'new_password': 'updated_password',
+                                  'password_token': user.security.secondary_token},
                               headers={'Authorization': f'Bearer {user_token}'})
 
         assert response.status_code == status.HTTP_200_OK
@@ -273,7 +276,7 @@ def test_user_password_change_flow(user, user_security, user_token, session):
 
         session.refresh(user)
         assert user.check_password('updated_password')
-        assert user.security.password_token is None
+        assert user.security.secondary_token is None
         assert len(outbox) == 2
 
 
