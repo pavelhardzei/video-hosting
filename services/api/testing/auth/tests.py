@@ -68,15 +68,12 @@ def test_email_verification_invalid_email(user1, user1_security):
         assert response.json() == {'detail': 'Token is invalid or expired'}
 
 
-def test_email_verification_resend(user1, user1_security):
+def test_email_confirmation(user1, user1_security):
     fm.config.SUPPRESS_SEND = 1
 
     with fm.record_messages() as outbox:
-        response = client.post(
-            '/api/v1/auth/email-verification-resend/',
-            json={
-                'email': user1.email,
-                'email_type': EmailTypeEnum.verification})
+        response = client.post('/api/v1/auth/email-confirmation/',
+                               json={'email': user1.email, 'email_type': EmailTypeEnum.verification})
 
         assert len(outbox) == 1
         assert outbox[0]['from'] == email_settings.MAIL_FROM
@@ -85,20 +82,14 @@ def test_email_verification_resend(user1, user1_security):
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {'detail': 'Email sent'}
 
-        response = client.post(
-            '/api/v1/auth/email-verification-resend/',
-            json={
-                'email': user1.email,
-                'email_type': EmailTypeEnum.verification})
+        response = client.post('/api/v1/auth/email-confirmation/',
+                               json={'email': user1.email, 'email_type': EmailTypeEnum.password_change})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.json() == {'detail': f'You can resend email in {settings.email_resend_timeout_seconds} seconds'}
 
         with freeze_time(datetime.utcnow() + timedelta(seconds=settings.email_resend_timeout_seconds)):
-            response = client.post(
-                '/api/v1/auth/email-verification-resend/',
-                json={
-                    'email': user1.email,
-                    'email_type': EmailTypeEnum.verification})
+            response = client.post('/api/v1/auth/email-confirmation/',
+                                   json={'email': user1.email, 'email_type': EmailTypeEnum.verification})
 
             assert response.status_code == status.HTTP_200_OK
             assert response.json() == {'detail': 'Email sent'}
@@ -106,22 +97,16 @@ def test_email_verification_resend(user1, user1_security):
         assert len(outbox) == 2
 
 
-def test_email_verification_resend_email_is_already_verified(user):
-    response = client.post(
-        '/api/v1/auth/email-verification-resend/',
-        json={
-            'email': user.email,
-            'email_type': EmailTypeEnum.verification})
+def test_email_confirmation_email_is_already_verified(user):
+    response = client.post('/api/v1/auth/email-confirmation/',
+                           json={'email': user.email, 'email_type': EmailTypeEnum.verification})
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'Email is already verified'}
 
 
-def test_email_verification_resend_user_does_not_exist():
-    response = client.post(
-        '/api/v1/auth/email-verification-resend/',
-        json={
-            'email': 'fake@example.com',
-            'email_type': EmailTypeEnum.verification})
+def test_email_confirmation_user_does_not_exist():
+    response = client.post('/api/v1/auth/email-confirmation/',
+                           json={'email': 'fake@example.com', 'email_type': EmailTypeEnum.verification})
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json() == {'detail': 'Not found'}

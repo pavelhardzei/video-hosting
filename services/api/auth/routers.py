@@ -48,11 +48,14 @@ def email_verification(data: TokenSchema, session: Session = Depends(session_dep
     return {'detail': 'Email successfully verified'}
 
 
-@router.post('/email-verification-resend/', response_model=DetailSchema)
-def email_verification_resend(background_tasks: BackgroundTasks, data: EmailSchema,
-                              session: Session = Depends(session_dependency)):
+@router.post('/email-confirmation/', response_model=DetailSchema)
+def email_confirmation(background_tasks: BackgroundTasks, data: EmailSchema,
+                       session: Session = Depends(session_dependency)):
     user = session.query(UserProfile).filter(UserProfile.email == data.email).first()
-    check_permissions(user, (UserEmailNotVerified(), UserEmailReady()))
+
+    if data.email_type == EmailTypeEnum.verification:
+        check_permissions(user, (UserEmailNotVerified(), ))
+    check_permissions(user, (UserEmailReady(), ))
 
     user.security.email_sent_time = datetime.utcnow()
     user.security.token = utils.create_access_token({'id': user.id})
