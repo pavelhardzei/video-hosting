@@ -31,8 +31,12 @@ class UserPasswordUpdateSchema(BaseModel):
     token: str
 
 
-class TokenSchema(BaseModel):
+class AccessTokenSchema(BaseModel):
     access_token: str
+
+
+class TokenSchema(BaseModel):
+    token: str
 
 
 class EmailSchema(BaseModel):

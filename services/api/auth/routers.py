@@ -5,7 +5,7 @@ from auth.models import UserProfile, UserSecurity
 from auth.permissions import (UserAccessTokenValid, UserActive, UserEmailNotVerified, UserEmailReady,
                               UserSecondaryTokenValid)
 from auth.schemas.enums import EmailTypeEnum
-from auth.schemas.schemas import (DetailSchema, EmailSchema, TokenSchema, UserPasswordUpdateSchema,
+from auth.schemas.schemas import (AccessTokenSchema, DetailSchema, EmailSchema, TokenSchema, UserPasswordUpdateSchema,
                                   UserProfileCreateSchema, UserProfileSchema)
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
@@ -38,10 +38,10 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
 
 @router.post('/email-verification/', response_model=DetailSchema)
 def email_verification(data: TokenSchema, session: Session = Depends(session_dependency)):
-    payload = utils.decode_token(data.access_token)
+    payload = utils.decode_token(data.token)
 
     user = session.get(UserProfile, payload.get('id'))
-    check_permissions(user, (UserEmailNotVerified(), UserSecondaryTokenValid(data.access_token)))
+    check_permissions(user, (UserEmailNotVerified(), UserSecondaryTokenValid(data.token)))
 
     user.is_active = True
     user.security.secondary_token = None
@@ -87,7 +87,7 @@ def email_confirmation(background_tasks: BackgroundTasks, data: EmailSchema,
     return {'detail': 'Email sent'}
 
 
-@router.post('/signin/', response_model=TokenSchema)
+@router.post('/signin/', response_model=AccessTokenSchema)
 def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(session_dependency)):
     user = session.query(UserProfile).filter(UserProfile.email == form_data.username).first()
 
@@ -103,8 +103,8 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
     return {'access_token': user.security.access_token}
 
 
-@router.post('/refresh-token/', response_model=TokenSchema)
-def refresh_token(data: TokenSchema, session: Session = Depends(session_dependency)):
+@router.post('/refresh-token/', response_model=AccessTokenSchema)
+def refresh_token(data: AccessTokenSchema, session: Session = Depends(session_dependency)):
     payload = utils.decode_token(data.access_token, options={'verify_exp': False})
 
     user = session.get(UserProfile, payload.get('id'))

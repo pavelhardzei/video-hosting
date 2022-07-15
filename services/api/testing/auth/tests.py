@@ -33,7 +33,7 @@ def test_signup_flow(session):
     user = session.query(UserProfile).first()
     assert user.check_password('testing321')
 
-    response = client.post('/api/v1/auth/email-verification/', json={'access_token': user.security.secondary_token})
+    response = client.post('/api/v1/auth/email-verification/', json={'token': user.security.secondary_token})
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'detail': 'Email successfully verified'}
 
@@ -54,7 +54,7 @@ def test_signup_email_already_exists(user):
 
 
 def test_email_verification_email_is_already_verified(user, user_security):
-    response = client.post('/api/v1/auth/email-verification/', json={'access_token': user.security.secondary_token})
+    response = client.post('/api/v1/auth/email-verification/', json={'token': user.security.secondary_token})
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'Email is already verified'}
 
@@ -62,7 +62,7 @@ def test_email_verification_email_is_already_verified(user, user_security):
 def test_email_verification_invalid_email(user1, user1_security):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         response = client.post('/api/v1/auth/email-verification/',
-                               json={'access_token': utils.create_token({'id': user1.id})})
+                               json={'token': utils.create_token({'id': user1.id})})
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.json() == {'detail': 'Token is invalid or expired'}
