@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html style="margin: 0;padding: 0;" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+  <meta content="IE=edge" http-equiv="X-UA-Compatible">
+  <meta content="width=device-width" name="viewport">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta content="noindex,nofollow" name="robots">
+
+  <title>darktheater. Confirm</title>
+  <style type="text/css">
+    @import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic,700italic);
+  </style>
+
+  <style type="text/css">
+    * {
+      line-height: inherit;
+      font-family: Source Sans Pro, Apple SD Gothic Neo, PT Sans, Trebuchet MS, sans-serif;
+    }
+
+    table {
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    [x-apple-data-detectors] {
+      color: inherit !important;
+      text-decoration: none !important;
+    }
+
+    .no-spacing {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .content {
+      max-width: 640px;
+      min-width: 320px;
+      width: calc(28000% - 167400px);
+    }
+
+    .header-content {
+      max-width: 320px;
+      min-width: 160px;
+      width: calc(14000% - 83700px);
+    }
+
+    .header__body {
+      padding: 20px;
+      background-color: #000000;
+      background: 18% 0%/cover no-repeat url(https://raw.githubusercontent.com/darkguin/email-templates/main/darktheater/assets/darktheater-email-preview-with-mask.png) #000000;
+      background-position: 18% 0%;
+      background-image: url(https://raw.githubusercontent.com/darkguin/email-templates/main/darktheater/assets/darktheater-email-preview-with-mask.png);
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    .header__logo {
+      text-decoration: inherit;
+      color: #00b9ae;
+    }
+
+    .body__container {
+      padding: 20px;
+    }
+
+    .accent-bg {
+      background: #00B9AE;
+    }
+
+    .light-bg {
+      background: #F9F9F9;
+    }
+
+    .accent-text {
+      color: #00B9AE;
+    }
+
+    .dark-text {
+      color: #16181E;
+    }
+
+    .light-text {
+      color: #F9F9F9;
+    }
+
+    @media screen and (max-width: 640px) {
+      .header-content {
+        min-width: 320px;
+        width: calc(28000% - 167400px);
+      }
+    }
+
+  </style>
+</head>
+<body style="background-color: #21242D;margin: 0;padding: 0;-webkit-text-size-adjust: 100%;">
+<table cellpadding="0"
+       cellspacing="0"
+       bgcolor="#21242D"
+       class="wrapper" role="presentation"
+       style="border-collapse: collapse;table-layout: fixed;min-width: 320px;width: 100%;"
+>
+  <tr>
+    <td align="center" valign="top">
+      <!-- SPACING -->
+      <table class="spacing">
+        <tr>
+          <td height="30"></td>
+        </tr>
+      </table>
+
+      <!-- EMAIL CONTENT -->
+      <table
+        cellpadding="0"
+        cellspacing="0"
+        class="content no-spacing light-bg"
+        style="border-collapse: collapse;table-layout: fixed;overflow-wrap: break-word;word-wrap: break-word;word-break: break-word;"
+      >
+        <tr>
+          <td valign="top">
+            <!-- EMAIL HEADER -->
+            {% block header %}{% endblock %}
+
+            <!-- EMAIL BODY -->
+            {% block body %}{% endblock %}
+
+            <!-- EMAIL FOOTER -->
+            {% block footer %}{% endblock %}
+          </td>
+        </tr>
+      </table>
+
+      <!-- SPACING -->
+      <table class="spacing">
+        <tr>
+          <td height="30"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
