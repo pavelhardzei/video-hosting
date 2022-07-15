@@ -4,7 +4,8 @@ from auth import utils
 from auth.dependencies import current_user
 from auth.models import UserProfile
 from auth.permissions import UserEmailReady
-from auth.schemas import DetailSchema, UserPasswordUpdateSchema, UserProfileSchema, UserProfileUpdateSchema
+from auth.schemas.enums import EmailTypeEnum
+from auth.schemas.schemas import DetailSchema, UserPasswordUpdateSchema, UserProfileSchema, UserProfileUpdateSchema
 from base.database import crud
 from base.permissions import check_permissions
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
@@ -42,7 +43,7 @@ def change_password_request(background_tasks: BackgroundTasks, user: UserProfile
     user.save()
 
     utils.send_mail([user.email], {'token': user.security.password_token},
-                    'email/password_change.html', background_tasks)
+                    EmailTypeEnum.password_change, background_tasks)
 
     return {'detail': 'Follow the changing password link on the email'}
 
@@ -60,6 +61,6 @@ def change_password(data: UserPasswordUpdateSchema, background_tasks: Background
     user.save()
 
     utils.send_mail([user.email], {'token': user.security.token},
-                    'email/password_changed.html', background_tasks)
+                    EmailTypeEnum.password_changed, background_tasks)
 
     return {'detail': 'Password changed'}

@@ -3,7 +3,8 @@ from datetime import datetime
 from auth import utils
 from auth.models import UserProfile, UserSecurity
 from auth.permissions import UserActive, UserEmailNotVerified, UserEmailReady, UserTokenValid
-from auth.schemas import DetailSchema, EmailSchema, TokenSchema, UserProfileCreateSchema, UserProfileSchema
+from auth.schemas.enums import EmailTypeEnum
+from auth.schemas.schemas import DetailSchema, EmailSchema, TokenSchema, UserProfileCreateSchema, UserProfileSchema
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
@@ -28,7 +29,7 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
     user.save()
 
     utils.send_mail([user.email], {'token': user.security.token},
-                    'email/verification.html', background_tasks)
+                    EmailTypeEnum.verification, background_tasks)
 
     return user
 
@@ -57,7 +58,7 @@ def email_verification_resend(background_tasks: BackgroundTasks, data: EmailSche
     user.save()
 
     utils.send_mail([user.email], {'token': user.security.token},
-                    'email/verification.html', background_tasks)
+                    data.email_type, background_tasks)
 
     return {'detail': 'Email sent'}
 

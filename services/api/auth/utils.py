@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
+from auth.schemas.enums import EmailTypeEnum
 from base.settings import email_settings, settings
 from fastapi import BackgroundTasks, HTTPException, status
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
@@ -30,11 +31,15 @@ def decode_access_token(token: str, **kwargs):
 
 
 fm = FastMail(ConnectionConfig(**email_settings.dict()))
+email_templates = {EmailTypeEnum.verification: 'email/verification.html',
+                   EmailTypeEnum.password_change: 'email/password_change.html',
+                   EmailTypeEnum.password_changed: 'email/password_changed.html'}
 
 
-def send_mail(recipients: List[str], body: Dict[str, Any], template_name: str, background_tasks: BackgroundTasks):
+def send_mail(recipients: List[str], body: Dict[str, Any],
+              email_type: EmailTypeEnum, background_tasks: BackgroundTasks):
     message = MessageSchema(subject='Email Verification',
                             recipients=recipients,
                             template_body=body)
 
-    background_tasks.add_task(fm.send_message, message, template_name=template_name)
+    background_tasks.add_task(fm.send_message, message, template_name=email_templates[email_type])
