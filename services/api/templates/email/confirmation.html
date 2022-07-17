@@ -1,0 +1,24 @@
+{% extends 'email/base.html' %}
+
+{% block confirmation_button %}
+<tr>
+    <td align="center" valign="middle">
+        <table>
+        <tr>
+            <td>
+            <!-- EMAIL CONFIRM BUTTON-->
+            <div class="button" style="margin-bottom: 20px;text-align: left;">
+                <a
+                class="accent-bg dark-text"
+                style="border-radius: 15px; display: inline-block;font-size: 18px;font-weight: bold; line-height: 18px;text-decoration: none; text-align: center;text-decoration: none !important;padding: 19px 37px;"
+                href="https://darktheater.net/auth/confirm?token={{token}}"
+                >
+                {% block button_message %}{% endblock %}
+                </a>
+            </div>
+            </td>
+        </tr>
+        </table>
+    </td>
+</tr>
+{% endblock %}
