@@ -30,7 +30,8 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
     user.security = UserSecurity()
     user.save()
 
-    utils.send_mail([user.email], {'token': user.security.secondary_token},
+    utils.send_mail([user.email], {'token': user.security.secondary_token,
+                                   'email_type': EmailTypeEnum.verification.value},
                     EmailTypeEnum.verification, background_tasks)
 
     return user
@@ -81,7 +82,7 @@ def email_confirmation(background_tasks: BackgroundTasks, data: EmailSchema,
     user.security.secondary_token = utils.create_token({'id': user.id})
     user.save()
 
-    utils.send_mail([user.email], {'token': user.security.secondary_token},
+    utils.send_mail([user.email], {'token': user.security.secondary_token, 'email_type': data.email_type.value},
                     data.email_type, background_tasks)
 
     return {'detail': 'Email sent'}
