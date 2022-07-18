@@ -1,10 +1,26 @@
 from auth.routers import router as auth_router
 from base.schemas.enums import ErrorCodeEnum
 from fastapi import APIRouter, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 app = FastAPI()
+
+origins = [
+    'https://darktheater-app.web.app',
+    'https://darktheater-app.firebaseapp.com',
+    'https://darktheater.net',
+    'http://localhost:4000'
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
 router = APIRouter(
     prefix='/api/v1'
