@@ -5,6 +5,7 @@ from auth.permissions import UserSecondaryTokenValid
 from auth.schemas.schemas import TokenSchema, UserProfileSchema, UserProfileUpdateSchema
 from base.database import crud
 from base.permissions import check_permissions
+from base.schemas.schemas import ErrorSchema
 from fastapi import APIRouter, Depends, status
 
 router = APIRouter(
@@ -12,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.get('/', response_model=UserProfileSchema)
+@router.get('/', response_model=UserProfileSchema, responses={status.HTTP_401_UNAUTHORIZED: {'model': ErrorSchema}})
 def get_user(user: UserProfile = Depends(current_user)):
     return user
 

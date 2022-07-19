@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
 from auth.schemas.enums import EmailTypeEnum
+from base.schemas.enums import ErrorCodeEnum
 from base.settings import email_settings, settings
 from fastapi import BackgroundTasks, HTTPException, status
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
@@ -26,7 +27,8 @@ def decode_token(token: str, **kwargs):
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm], **kwargs)
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail=f'{e}')
+                            detail=f'{e}',
+                            headers={'Error-Code': ErrorCodeEnum.invalid_token})
     return payload
 
 
