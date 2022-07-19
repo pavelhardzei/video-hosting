@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from alembic import context
 from auth import models  # noqa: F401
 from base.database.config import Base
-from base.settings import Settings
+from base.settings import settings
 from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
@@ -26,7 +26,6 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-settings = Settings()
 config.set_main_option('sqlalchemy.url', settings.sqlalchemy_database_url)
 
 
