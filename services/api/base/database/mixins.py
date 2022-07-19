@@ -1,4 +1,5 @@
 from base.database.config import SessionLocal
+from base.schemas.enums import ErrorCodeEnum
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
@@ -14,7 +15,8 @@ class SaveDeleteDBMixin:
                 session.refresh(self)
             except IntegrityError as e:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail=f'{e.orig}')
+                                    detail=f'{e.orig}',
+                                    headers={'Error-Code': ErrorCodeEnum.already_exists})
 
     def delete(self):
         with self.session_class() as session:

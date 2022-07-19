@@ -10,6 +10,7 @@ from auth.schemas.schemas import (AccessTokenSchema, DetailSchema, EmailSchema, 
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
+from base.schemas.enums import ErrorCodeEnum
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -94,7 +95,8 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
 
     if user is None or not user.check_password(form_data.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail='Incorrect email or password')
+                            detail='Incorrect email or password',
+                            headers={'Error-Code': ErrorCodeEnum.invalid_credentials})
 
     check_permissions(user, (UserActive(), ))
 

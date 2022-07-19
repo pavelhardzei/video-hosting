@@ -5,6 +5,7 @@ from auth import utils
 from auth.models import UserProfile
 from auth.schemas.enums import EmailTypeEnum
 from auth.utils import fm
+from base.schemas.enums import ErrorCodeEnum
 from base.settings import email_settings, settings
 from fastapi import status
 from freezegun import freeze_time
@@ -50,13 +51,14 @@ def test_signup_email_already_exists(user):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail':
                                'duplicate key value violates unique constraint \"user_profile_email_key\"\n'
-                               f'DETAIL:  Key (email)=({user.email}) already exists.\n'}
+                               f'DETAIL:  Key (email)=({user.email}) already exists.\n',
+                               'error_code': ErrorCodeEnum.already_exists}
 
 
 def test_email_verification_email_is_already_verified(user, user_security):
     response = client.post('/api/v1/auth/email-verification/', json={'token': user.security.secondary_token})
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': 'Email is already verified'}
+    assert response.json() == {'detail': 'Email is already verified', 'error_code': ErrorCodeEnum.already_verified}
 
 
 def test_email_verification_invalid_email(user1, user1_security):
@@ -65,7 +67,7 @@ def test_email_verification_invalid_email(user1, user1_security):
                                json={'token': utils.create_token({'id': user1.id})})
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {'detail': 'Token is invalid or expired'}
+        assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
 def test_email_confirmation(user1, user1_security):
@@ -85,7 +87,8 @@ def test_email_confirmation(user1, user1_security):
         response = client.post('/api/v1/auth/email-confirmation/',
                                json={'email': user1.email, 'email_type': EmailTypeEnum.password_change})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {'detail': f'You can resend email in {settings.email_resend_timeout_seconds} seconds'}
+        assert response.json() == {'detail': f'You can resend email in {settings.email_resend_timeout_seconds} seconds',
+                                   'error_code': ErrorCodeEnum.timeout_error}
 
         with freeze_time(datetime.utcnow() + timedelta(seconds=settings.email_resend_timeout_seconds)):
             response = client.post('/api/v1/auth/email-confirmation/',
@@ -101,7 +104,7 @@ def test_email_confirmation_email_is_already_verified(user):
     response = client.post('/api/v1/auth/email-confirmation/',
                            json={'email': user.email, 'email_type': EmailTypeEnum.verification})
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': 'Email is already verified'}
+    assert response.json() == {'detail': 'Email is already verified', 'error_code': ErrorCodeEnum.already_verified}
 
 
 def test_email_confirmation_user_does_not_exist():
@@ -109,7 +112,7 @@ def test_email_confirmation_user_does_not_exist():
                            json={'email': 'fake@example.com', 'email_type': EmailTypeEnum.verification})
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {'detail': 'Not found'}
+    assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.not_found}
 
 
 def test_signin(user, user_security):
@@ -123,12 +126,12 @@ def test_signin_invalid_credentials(session, user):
     response = client.post('/api/v1/auth/signin/', data={'username': 'fake@fake.com',
                                                          'password': 'testing321'})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {'detail': 'Incorrect email or password'}
+    assert response.json() == {'detail': 'Incorrect email or password', 'error_code': ErrorCodeEnum.invalid_credentials}
 
     response = client.post('/api/v1/auth/signin/', data={'username': 'test@test.com',
                                                          'password': 'fake_password'})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {'detail': 'Incorrect email or password'}
+    assert response.json() == {'detail': 'Incorrect email or password', 'error_code': ErrorCodeEnum.invalid_credentials}
 
 
 def test_signin_user_is_inactive(user1):
@@ -136,7 +139,7 @@ def test_signin_user_is_inactive(user1):
                                                          'password': 'testing321'})
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {'detail': 'User is inactive'}
+    assert response.json() == {'detail': 'User is inactive', 'error_code': ErrorCodeEnum.user_inactive}
 
 
 def test_refresh_token(user, user_security, user_token):
@@ -148,7 +151,7 @@ def test_refresh_token(user, user_security, user_token):
 
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {'detail': 'Token is invalid or expired'}
+        assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
 def test_validate_refreshed_token(user, user_security, user_token):
@@ -170,13 +173,13 @@ def test_refresh_token_invalid_token(user, user_security):
         response = client.post('/api/v1/auth/refresh-token/',
                                json={'access_token': utils.create_token({'id': user.id})})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {'detail': 'Token is invalid or expired'}
+        assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
 def test_refresh_token_user_is_inactive(user1_token):
     response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user1_token})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {'detail': 'User is inactive'}
+    assert response.json() == {'detail': 'User is inactive', 'error_code': ErrorCodeEnum.user_inactive}
 
 
 def test_get_current_user(user, user_security, user_token):
@@ -194,25 +197,25 @@ def test_get_current_user_inactive(user1_token):
     response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user1_token}'})
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {'detail': 'User is inactive'}
+    assert response.json() == {'detail': 'User is inactive', 'error_code': ErrorCodeEnum.user_inactive}
 
 
 def test_get_current_user_invalid_token(user, user_security, user_token):
     response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user_token}_fake'})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {'detail': 'Signature verification failed.'}
+    assert response.json() == {'detail': 'Signature verification failed.', 'error_code': ErrorCodeEnum.invalid_token}
 
     response = client.get('/api/v1/auth/users/me/', headers={'Authorization':
                                                              f"Bearer {utils.create_token({'id': 0})}"})
     assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {'detail': 'Not found'}
+    assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.not_found}
 
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         invalid_token = utils.create_token({'id': user.id})
 
         response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f"Bearer {invalid_token}"})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {'detail': 'Token is invalid or expired'}
+        assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
 def test_get_current_user_token_expired(user_token):
@@ -220,7 +223,7 @@ def test_get_current_user_token_expired(user_token):
         response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {'detail': 'Signature has expired.'}
+    assert response.json() == {'detail': 'Signature has expired.', 'error_code': ErrorCodeEnum.invalid_token}
 
 
 def test_patch_current_user(user, user_security, user_token):
@@ -263,7 +266,7 @@ def test_delete_current_user_invalid_token(user, user_token, user_security):
                                  headers={'Authorization': f'Bearer {user_token}'})
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {'detail': 'Token is invalid or expired'}
+        assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
 def test_user_password_change_flow(user, user_security, session):
@@ -299,4 +302,4 @@ def test_user_password_change_invalid_token(user, user_security):
                                     'token': f"{utils.create_token({'id': user.id})}"})
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {'detail': 'Token is invalid or expired'}
+        assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
