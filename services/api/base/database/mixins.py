@@ -1,4 +1,6 @@
 from base.database.config import SessionLocal
+from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 
 
 class SaveDeleteDBMixin:
@@ -6,9 +8,13 @@ class SaveDeleteDBMixin:
 
     def save(self):
         with self.session_class() as session:
-            session.add(self)
-            session.commit()
-            session.refresh(self)
+            try:
+                session.add(self)
+                session.commit()
+                session.refresh(self)
+            except IntegrityError as e:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail=f'{e.orig}')
 
     def delete(self):
         with self.session_class() as session:
