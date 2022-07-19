@@ -1,11 +1,34 @@
 version: "3.9"
 
+volumes:
+  postgres_data:
+
 services:
+  db:
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .db.env
   api:
     build: ./services/api/
     volumes:
       - ./services/api/:/opt/
-    entrypoint: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+    entrypoint: uvicorn base.main:app --host 0.0.0.0 --port 8001 --reload
+    env_file:
+      - .api.env
+    depends_on:
+      - db
+      - migrations
+  migrations:
+    build: ./services/api/
+    volumes:
+      - ./services/api/:/opt/
+    entrypoint: bash -c "sleep 5 && alembic revision --autogenerate && alembic upgrade head"
+    env_file:
+      - .api.env
+    depends_on:
+      - db
   nginx:
     build: ./services/nginx/
     ports:

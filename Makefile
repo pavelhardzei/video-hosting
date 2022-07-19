@@ -9,5 +9,5 @@ build:
 api:
 	docker-compose exec api bash
 db:
-	docker-compose exec db psql --username=postgres --dbname=postgres
+	docker-compose exec db psql --username=postgres
 .PHONY: up up_bg down build api db
