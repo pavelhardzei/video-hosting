@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html style="margin: 0;padding: 0;" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+  <meta content="IE=edge" http-equiv="X-UA-Compatible">
+  <meta content="width=device-width" name="viewport">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta content="noindex,nofollow" name="robots">
+
+  <title>darktheater</title>
+  <style type="text/css">
+    @import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic,700italic);
+  </style>
+
+  <style type="text/css">
+    * {
+      line-height: inherit;
+      font-family: Source Sans Pro, Apple SD Gothic Neo, PT Sans, Trebuchet MS, sans-serif;
+    }
+
+    table {
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    [x-apple-data-detectors] {
+      color: inherit !important;
+      text-decoration: none !important;
+    }
+
+    .no-spacing {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .content {
+      max-width: 640px;
+      min-width: 320px;
+      width: calc(28000% - 167400px);
+    }
+
+    .header-content {
+      max-width: 320px;
+      min-width: 160px;
+      width: calc(14000% - 83700px);
+    }
+
+    .header__body {
+      background-color: #000000;
+      background: 18% 0%/cover no-repeat url(https://raw.githubusercontent.com/darkguin/email-templates/main/darktheater/assets/darktheater-email-preview-with-mask.png) #000000;
+      background-position: 18% 0%;
+      background-image: url(https://raw.githubusercontent.com/darkguin/email-templates/main/darktheater/assets/darktheater-email-preview-with-mask.png);
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    .header__logo {
+      text-decoration: inherit;
+      color: #00b9ae;
+    }
+
+    .accent-bg {
+      background: #00B9AE;
+    }
+
+    .light-bg {
+      background: #F9F9F9;
+    }
+
+    .accent-text {
+      color: #00B9AE;
+    }
+
+    .dark-text {
+      color: #16181E;
+    }
+
+    .light-text {
+      color: #F9F9F9;
+    }
+
+    @media screen and (max-width: 640px) {
+      .header-content {
+        min-width: 320px;
+        width: calc(28000% - 167400px);
+      }
+    }
+
+  </style>
+</head>
+<body style="background-color: #21242D;margin: 0;padding: 0;-webkit-text-size-adjust: 100%;">
+<table cellpadding="0"
+       cellspacing="0"
+       bgcolor="#21242D"
+       class="wrapper" role="presentation"
+       style="border-collapse: collapse;table-layout: fixed;min-width: 320px;width: 100%;"
+>
+  <tr>
+    <td align="center" valign="top">
+      <!-- SPACING -->
+      <table class="spacing">
+        <tr>
+          <td height="30"></td>
+        </tr>
+      </table>
+
+      <!-- EMAIL CONTENT -->
+      <table
+        cellpadding="0"
+        cellspacing="0"
+        class="content no-spacing light-bg"
+        style="border-collapse: collapse;table-layout: fixed;overflow-wrap: break-word;word-wrap: break-word;word-break: break-word;"
+      >
+        <tr>
+          <td valign="top">
+
+
+            <!-- EMAIL HEADER -->
+            <table class="header header__body" bgcolor="black" style="width: 100%">
+              <tr>
+                <td valign="top" style="padding: 20px">
+                  <h3 style="font-size: 18px; line-height: 18px;">
+                    <span class="header__logo">
+                      <strong>darktheater</strong>
+                    </span>
+                  </h3>
+                  <div
+                    class="header-content light-text"
+                    style="font-size: 24px"
+                  >
+                    watch the latest movies, TV series and anime only in the best quality
+                  </div>
+
+                  <!-- EMAIL HEADER BUTTON -->
+                  <div class="button" style="text-align: left;padding: 30px 0 20px 0">
+                    <a
+                      class="accent-bg dark-text"
+                      style="border-radius: 15px; display: inline-block;font-size: 18px;font-weight: bold; line-height: 18px;text-decoration: none; text-align: center;text-decoration: none !important;padding: 19px 37px;"
+                      href="https://darktheater.net/"
+                    >
+                      watch more
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+
+            <!-- EMAIL BODY -->
+            <table class="body content light-bg">
+              <tr>
+                <td class="body__container" align="right" valign="middle" style="padding: 10px 20px 0 20px">
+                  <h3 class="dark-text" style="line-height: 0">
+                    welcome to the
+                    <span class="accent-text" style="font-size: 26px;">darktheater</span>
+                  </h3>
+                </td>
+              </tr>
+              <tr>
+                <td class="body__container" align="left" valign="middle" style="padding: 20px">
+                  {% block top_message %}{% endblock %}
+                </td>
+              </tr>
+              {% block confirmation_button %}{% endblock %}
+              <tr>
+                <td style="padding: 0 20px 40px 20px" align="left" valign="middle">
+                  {% block bottom_message %}{% endblock %}
+                </td>
+              </tr>
+            </table>
+
+
+            <!-- EMAIL FOOTER -->
+            <table class="footer content">
+              <tr>
+                <td class="content" bgcolor="black" align="center" valign="middle" style="padding: 0 20px;">
+                  <table style="width: 100%">
+                    <tr align="center" valign="middle">
+                      <td></td>
+                      <td style="width: 40px">
+                        <img
+                          src="https://raw.githubusercontent.com/darkguin/email-templates/main/darkguin/assets/logo.png"
+                          width="40px" height="40px" />
+                      </td>
+                      <td class="light-text" style="width: 140px">
+                        <p style="font-size: 18px; font-weight: 600; padding: 6px 0 0 6px">darkguin project</p>
+                      </td>
+                      <td></td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <!-- SPACING -->
+      <table class="spacing">
+        <tr>
+          <td height="30"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

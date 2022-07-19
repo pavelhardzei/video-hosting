@@ -4,17 +4,19 @@ from base.database.config import Base, engine
 from base.database.dependencies import session_dependency
 from base.database.mixins import SaveDeleteDBMixin
 from base.main import app
-from pytest_factoryboy import register
+from pytest_factoryboy import LazyFixture, register
 from sqlalchemy.orm import scoped_session, sessionmaker
 from testing import test_session_dependency
-from testing.auth.factories import UserProfileFactory
+from testing.auth.factories import UserProfileFactory, UserSecurityFactory
 
 register(UserProfileFactory, 'user', email='test@test.com', username='test', is_active=True)
+
+register(UserSecurityFactory, 'user_security', access_token=LazyFixture('user_token'), user=LazyFixture('user'))
 
 
 @pytest.fixture
 def user_token(user):
-    return utils.create_access_token({'id': user.id})
+    return utils.create_token({'id': user.id})
 
 
 @pytest.fixture(scope='module')
@@ -33,6 +35,7 @@ def session(connection):
     SaveDeleteDBMixin._session_class = session
 
     UserProfileFactory._meta.sqlalchemy_session = session
+    UserSecurityFactory._meta.sqlalchemy_session = session
 
     app.dependency_overrides[session_dependency] = test_session_dependency(session)
 

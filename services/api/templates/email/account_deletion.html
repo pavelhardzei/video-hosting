@@ -1,0 +1,19 @@
+{% extends 'email/confirmation.html' %}
+
+{% block top_message %}
+  You have received this message because the account with your email
+  address is trying to delete the account. We are glad that you were
+  a part of our community and saddened by your passing. Darktheater is
+  constantly evolving and getting better. If you really want to delete
+  your account, please click on the button below to confirm the action
+  and go to the account deletion page.
+{% endblock %}
+
+{% block button_message %}
+  delete account
+{% endblock %}
+
+{% block bottom_message %}
+  This link will be active for 30 minutes. If you have not
+  performed the account delete action, please ignore this email.
+{% endblock %}
