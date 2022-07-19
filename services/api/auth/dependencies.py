@@ -18,4 +18,8 @@ def current_user(token: str = Depends(oauth2_scheme), session: Session = Depends
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail='Could not validate credentials')
 
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail='User is inactive')
+
     return user

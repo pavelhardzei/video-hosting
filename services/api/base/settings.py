@@ -1,4 +1,7 @@
-from pydantic import BaseSettings
+import os
+from pathlib import Path
+
+from pydantic import BaseSettings, EmailStr
 
 
 class Settings(BaseSettings):
@@ -12,3 +15,20 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+class EmailSettings(BaseSettings):
+    MAIL_USERNAME: EmailStr
+    MAIL_PASSWORD: str
+    MAIL_FROM: EmailStr
+    MAIL_PORT: int
+    MAIL_SERVER: str
+    MAIL_TLS: bool
+    MAIL_SSL: bool
+    TEMPLATE_FOLDER: str = os.path.join(Path(__file__).resolve().parent.parent, 'templates')
+
+    class Config:
+        env_file_encoding = 'utf-8'
+
+
+email_settings = EmailSettings()

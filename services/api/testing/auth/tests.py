@@ -3,27 +3,87 @@ from unittest.mock import ANY
 
 from auth import utils
 from auth.models import UserProfile
-from base.settings import settings
+from auth.utils import fm
+from base.settings import email_settings, settings
 from fastapi import status
 from freezegun import freeze_time
 from testing import client
 
 
-def test_signup(session):
-    response = client.post('/api/v1/auth/signup/', json={'email': 'test@test.com',
-                                                         'username': 'test',
-                                                         'password': 'testing321'})
+def test_signup_flow(session):
+    fm.config.SUPPRESS_SEND = 1
+
+    with fm.record_messages() as outbox:
+        response = client.post('/api/v1/auth/signup/', json={'email': 'test@test.com',
+                                                             'username': 'test',
+                                                             'password': 'testing321'})
+        assert len(outbox) == 1
+        assert outbox[0]['from'] == email_settings.MAIL_FROM
+        assert outbox[0]['to'] == 'test@test.com'
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == {'id': ANY,
                                'email': 'test@test.com',
                                'username': 'test',
-                               'is_active': True,
+                               'is_active': False,
                                'role': UserProfile.RoleEnum.viewer}
 
     assert session.query(UserProfile).count() == 1
     user = session.query(UserProfile).first()
     assert user.check_password('testing321')
+
+    response = client.post('/api/v1/auth/email-verification/',
+                           json={'id': user.id, 'token': utils.create_access_token({'id': user.id})})
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {'detail': 'Email successfully verified'}
+
+    session.refresh(user)
+    assert user.is_active
+
+
+def test_signup_email_already_exists(user):
+    response = client.post('/api/v1/auth/signup/', json={'email': user.email,
+                                                         'username': 'test',
+                                                         'password': 'testing321'})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail':
+                               'duplicate key value violates unique constraint \"user_profile_email_key\"\n'
+                               f'DETAIL:  Key (email)=({user.email}) already exists.\n'}
+
+
+def test_email_verification_email_is_already_verified(user):
+    response = client.post('/api/v1/auth/email-verification/',
+                           json={'id': user.id, 'token': utils.create_access_token({'id': user.id})})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'Email is already verified'}
+
+
+def test_email_verification_resend(user1):
+    fm.config.SUPPRESS_SEND = 1
+
+    with fm.record_messages() as outbox:
+        response = client.post('/api/v1/auth/email-verification-resend/', json={'email': user1.email})
+
+        assert len(outbox) == 1
+        assert outbox[0]['from'] == email_settings.MAIL_FROM
+        assert outbox[0]['to'] == user1.email
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {'detail': 'Email sent'}
+
+
+def test_email_verification_resend_email_is_already_verified(user):
+    response = client.post('/api/v1/auth/email-verification-resend/', json={'email': user.email})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'Email is already verified'}
+
+
+def test_email_verification_resend_user_does_not_exist():
+    response = client.post('/api/v1/auth/email-verification-resend/', json={'email': 'fake@example.com'})
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {'detail': 'User not found'}
 
 
 def test_signin(user):
@@ -54,6 +114,13 @@ def test_get_current_user(user_token):
                                'role': UserProfile.RoleEnum.viewer}
 
 
+def test_get_current_user_inactive(user1_token):
+    response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user1_token}'})
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'User is inactive'}
+
+
 def test_get_current_user_invalid_token(user_token):
     response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user_token}_fake'})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -73,28 +140,17 @@ def test_get_current_user_token_expired(user_token):
     assert response.json() == {'detail': 'Signature has expired.'}
 
 
-def test_patch_current_user(user_token):
+def test_patch_current_user(user, user_token):
     response = client.patch('/api/v1/auth/users/me/',
-                            json={'email': 'updated', 'username': 'updated'},
+                            json={'username': 'updated'},
                             headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'id': ANY,
-                               'email': 'updated',
+                               'email': user.email,
                                'username': 'updated',
                                'is_active': True,
                                'role': UserProfile.RoleEnum.viewer}
-
-
-def test_patch_current_user_unique_constraint_violation(user_token, user1):
-    response = client.patch('/api/v1/auth/users/me/',
-                            json={'email': f'{user1.email}'},
-                            headers={'Authorization': f'Bearer {user_token}'})
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail':
-                               'duplicate key value violates unique constraint \"user_profile_email_key\"\n'
-                               f'DETAIL:  Key (email)=({user1.email}) already exists.\n'}
 
 
 def test_delete_current_user(user_token, session):

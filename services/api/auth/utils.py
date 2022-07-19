@@ -1,17 +1,16 @@
 from datetime import datetime, timedelta
+from typing import Any, Dict, List
 
-from base.settings import settings
-from fastapi import HTTPException, status
+from base.settings import email_settings, settings
+from fastapi import BackgroundTasks, HTTPException, status
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-# for plain password encryption
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
 def create_access_token(data: dict):
-    '''For access token creating'''
-
     to_encode = data.copy()
     to_encode.update({'exp': datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)})
     encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
@@ -20,11 +19,20 @@ def create_access_token(data: dict):
 
 
 def decode_access_token(token: str):
-    '''For access token decoding'''
-
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail=f'{e}')
     return payload
+
+
+fm = FastMail(ConnectionConfig(**email_settings.dict()))
+
+
+def send_mail(recipients: List[str], body: Dict[str, Any], background_tasks: BackgroundTasks):
+    message = MessageSchema(subject='Email Verification',
+                            recipients=recipients,
+                            template_body=body)
+
+    background_tasks.add_task(fm.send_message, message, template_name='email/verification.html')

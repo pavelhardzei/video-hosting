@@ -1,12 +1,12 @@
 import enum
 from typing import Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class UserProfileBaseSchema(BaseModel):
     username: str
-    email: str
+    email: EmailStr
 
 
 class UserProfileCreateSchema(UserProfileBaseSchema):
@@ -28,11 +28,19 @@ class UserProfileSchema(UserProfileBaseSchema):
         orm_mode = True
 
 
-class UserProfileUpdateSchema(UserProfileBaseSchema):
+class UserProfileUpdateSchema(BaseModel):
     username: Union[str, None] = None
-    email: Union[str, None] = None
 
 
 class TokenSchema(BaseModel):
     access_token: str
     token_type: str
+
+
+class EmailVerificationSchema(BaseModel):
+    id: int
+    token: str
+
+
+class DetailSchema(BaseModel):
+    detail: str
