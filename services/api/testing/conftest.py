@@ -1,5 +1,5 @@
 import pytest
-from auth.utils import create_access_token
+from auth import utils
 from base.database.config import Base, engine
 from base.database.dependencies import session_dependency
 from base.database.mixins import SaveDeleteDBMixin
@@ -14,7 +14,7 @@ register(UserProfileFactory, 'user', email='test@test.com', username='test', is_
 
 @pytest.fixture
 def user_token(user):
-    return create_access_token({'id': user.id})
+    return utils.create_access_token({'id': user.id})
 
 
 @pytest.fixture(scope='module')
