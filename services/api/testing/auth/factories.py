@@ -1,6 +1,6 @@
 import factory
 from auth import utils
-from auth.models import UserProfile
+from auth.models import UserProfile, UserSecurity
 from faker import Faker
 
 fake = Faker()
@@ -17,3 +17,14 @@ class UserProfileFactory(factory.alchemy.SQLAlchemyModelFactory):
     is_active = False
     role = UserProfile.RoleEnum.viewer
     password = utils.pwd_context.hash('testing321')
+
+
+class UserSecurityFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = UserSecurity
+        sqlalchemy_session_persistence = 'commit'
+
+    access_token = None
+    email_sent_time = None
+
+    user = factory.SubFactory(UserProfileFactory)

@@ -1,6 +1,6 @@
-import enum
 from typing import Union
 
+from auth.schemas.enums import EmailBaseEnum, RoleEnum
 from pydantic import BaseModel, EmailStr
 
 
@@ -11,12 +11,6 @@ class UserProfileBaseSchema(BaseModel):
 
 class UserProfileCreateSchema(UserProfileBaseSchema):
     password: str
-
-
-class RoleEnum(str, enum.Enum):
-    admin = 'admin'
-    moderator = 'moderator'
-    viewer = 'viewer'
 
 
 class UserProfileSchema(UserProfileBaseSchema):
@@ -32,14 +26,22 @@ class UserProfileUpdateSchema(BaseModel):
     username: Union[str, None] = None
 
 
-class TokenSchema(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class EmailVerificationSchema(BaseModel):
-    id: int
+class UserPasswordUpdateSchema(BaseModel):
+    new_password: str
     token: str
+
+
+class AccessTokenSchema(BaseModel):
+    access_token: str
+
+
+class TokenSchema(BaseModel):
+    token: str
+
+
+class EmailSchema(BaseModel):
+    email: EmailStr
+    email_type: EmailBaseEnum
 
 
 class DetailSchema(BaseModel):
