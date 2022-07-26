@@ -43,6 +43,23 @@ SQLAlchemy = ">=1.3.0"
 tz = ["python-dateutil"]
 
 [[package]]
+name = "alembic-autogen-check"
+version = "1.1.1"
+description = "CLI to check with alembic migrations are in sync with your SQLAlchemy models."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+alembic = "*"
+click = ">=7.0"
+
+[package.extras]
+tests = ["pytest"]
+lint = ["pre-commit (==1.16.1)", "fourmat (==0.2.0)"]
+dev = ["tox", "pre-commit (==1.16.1)", "fourmat (==0.2.0)", "pytest"]
+
+[[package]]
 name = "anyio"
 version = "3.6.1"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
@@ -925,7 +942,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "8c5b8d5861b957a4ca0f6528761f1ff2a970352bdf48e97396a9a3bbb2f48a98"
+content-hash = "1ac1e8b526aa21dd0dd7575224a7e67d86c954e3c828a31d00f01710de690615"
 
 [metadata.files]
 aioredis = [
@@ -940,6 +957,7 @@ alembic = [
     {file = "alembic-1.8.0-py3-none-any.whl", hash = "sha256:b5ae4bbfc7d1302ed413989d39474d102e7cfa158f6d5969d2497955ffe85a30"},
     {file = "alembic-1.8.0.tar.gz", hash = "sha256:a2d4d90da70b30e70352cd9455e35873a255a31402a438fe24815758d7a0e5e1"},
 ]
+alembic-autogen-check = []
 anyio = [
     {file = "anyio-3.6.1-py3-none-any.whl", hash = "sha256:cb29b9c70620506a9a8f87a309591713446953302d7d995344d0d7c6c0c9a7be"},
     {file = "anyio-3.6.1.tar.gz", hash = "sha256:413adf95f93886e442aea925f3ee43baa5a765a64a0f52c6081894f9992fdd0b"},
