@@ -119,7 +119,12 @@ def test_signin(user, user_security):
     response = client.post('/api/v1/auth/signin/', data={'username': 'test@test.com',
                                                          'password': 'testing321'})
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {'access_token': user.security.access_token}
+    assert response.json() == {'access_token': user.security.access_token,
+                               'user': {'id': user.id,
+                                        'email': user.email,
+                                        'username': user.username,
+                                        'is_active': user.is_active,
+                                        'role': user.role}}
 
 
 def test_signin_invalid_credentials(session, user):

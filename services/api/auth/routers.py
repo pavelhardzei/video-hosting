@@ -6,7 +6,7 @@ from auth.permissions import (UserAccessTokenValid, UserActive, UserEmailNotVeri
                               UserSecondaryTokenValid)
 from auth.schemas.enums import EmailTypeEnum
 from auth.schemas.schemas import (AccessTokenSchema, DetailSchema, EmailSchema, TokenSchema, UserPasswordUpdateSchema,
-                                  UserProfileCreateSchema, UserProfileSchema)
+                                  UserProfileCreateSchema, UserProfileSchema, UserSigninSchema)
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
@@ -89,7 +89,7 @@ def email_confirmation(background_tasks: BackgroundTasks, data: EmailSchema,
     return {'detail': 'Email sent'}
 
 
-@router.post('/signin/', response_model=AccessTokenSchema)
+@router.post('/signin/', response_model=UserSigninSchema)
 def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(session_dependency)):
     user = session.query(UserProfile).filter(UserProfile.email == form_data.username).first()
 
@@ -103,7 +103,7 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
     user.security.access_token = utils.create_token({'id': user.id})
     user.save()
 
-    return {'access_token': user.security.access_token}
+    return {'access_token': user.security.access_token, 'user': user}
 
 
 @router.post('/refresh-token/', response_model=AccessTokenSchema)

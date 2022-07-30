@@ -35,6 +35,10 @@ class AccessTokenSchema(BaseModel):
     access_token: str
 
 
+class UserSigninSchema(AccessTokenSchema):
+    user: UserProfileSchema
+
+
 class TokenSchema(BaseModel):
     token: str
 
