@@ -6,7 +6,7 @@ from auth.permissions import (UserAccessTokenValid, UserActive, UserEmailNotVeri
                               UserSecondaryTokenValid)
 from auth.schemas.enums import EmailTypeEnum
 from auth.schemas.schemas import (AccessTokenSchema, DetailSchema, EmailSchema, TokenSchema, UserPasswordUpdateSchema,
-                                  UserProfileCreateSchema, UserProfileSchema, UserSigninSchema)
+                                  UserProfileCreateSchema, UserTokenSchema)
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
@@ -23,7 +23,7 @@ router = APIRouter(
 router.include_router(users_router)
 
 
-@router.post('/signup/', response_model=UserProfileSchema, status_code=status.HTTP_201_CREATED)
+@router.post('/signup/', response_model=UserTokenSchema, status_code=status.HTTP_201_CREATED)
 def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
     user = UserProfile(**data.dict())
     user.set_password(data.password)
@@ -35,7 +35,7 @@ def signup(data: UserProfileCreateSchema, background_tasks: BackgroundTasks):
                                    'email_type': EmailTypeEnum.verification.value},
                     EmailTypeEnum.verification, background_tasks)
 
-    return user
+    return {'access_token': None, 'user': user}
 
 
 @router.post('/email-verification/', response_model=DetailSchema)
@@ -89,7 +89,7 @@ def email_confirmation(background_tasks: BackgroundTasks, data: EmailSchema,
     return {'detail': 'Email sent'}
 
 
-@router.post('/signin/', response_model=UserSigninSchema)
+@router.post('/signin/', response_model=UserTokenSchema)
 def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(session_dependency)):
     user = session.query(UserProfile).filter(UserProfile.email == form_data.username).first()
 

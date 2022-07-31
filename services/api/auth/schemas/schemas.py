@@ -35,7 +35,8 @@ class AccessTokenSchema(BaseModel):
     access_token: str
 
 
-class UserSigninSchema(AccessTokenSchema):
+class UserTokenSchema(BaseModel):
+    access_token: Union[str, None] = None
     user: UserProfileSchema
 
 

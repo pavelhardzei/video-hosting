@@ -24,11 +24,12 @@ def test_signup_flow(session):
         assert outbox[0]['to'] == 'test@test.com'
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == {'id': ANY,
-                               'email': 'test@test.com',
-                               'username': 'test',
-                               'is_active': False,
-                               'role': UserProfile.RoleEnum.viewer}
+    assert response.json() == {'access_token': None,
+                               'user': {'id': ANY,
+                                        'email': 'test@test.com',
+                                        'username': 'test',
+                                        'is_active': False,
+                                        'role': UserProfile.RoleEnum.viewer}}
 
     assert session.query(UserProfile).count() == 1
     user = session.query(UserProfile).first()
