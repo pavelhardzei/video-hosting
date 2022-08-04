@@ -2,7 +2,7 @@ import pytest
 from auth import utils
 from base.database.config import Base, engine
 from base.database.dependencies import session_dependency
-from base.database.mixins import SaveDeleteDBMixin
+from base.database.mixins import BaseDBMixin
 from base.main import app
 from pytest_factoryboy import LazyFixture, register
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -31,8 +31,8 @@ def session(connection):
     transaction = connection.begin()
     session = scoped_session(sessionmaker(bind=connection))
 
-    default_session_class = SaveDeleteDBMixin._session_class
-    SaveDeleteDBMixin._session_class = session
+    default_session_class = BaseDBMixin._session_class
+    BaseDBMixin._session_class = session
 
     UserProfileFactory._meta.sqlalchemy_session = session
     UserSecurityFactory._meta.sqlalchemy_session = session
@@ -45,6 +45,6 @@ def session(connection):
 
     yield session
 
-    SaveDeleteDBMixin._session_class = default_session_class
+    BaseDBMixin._session_class = default_session_class
     session.close()
     transaction.rollback()

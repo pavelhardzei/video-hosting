@@ -4,9 +4,15 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
 
-class SaveDeleteDBMixin:
+class BaseDBMixin:
     _session_class = SessionLocal
 
+    @property
+    def session_class(self):
+        return self._session_class
+
+
+class SaveDBMixin(BaseDBMixin):
     def save(self):
         with self.session_class() as session:
             try:
@@ -18,11 +24,9 @@ class SaveDeleteDBMixin:
                                     detail=f'{e.orig}',
                                     headers={'Error-Code': ErrorCodeEnum.already_exists})
 
+
+class DeleteDBMixin(BaseDBMixin):
     def delete(self):
         with self.session_class() as session:
             session.delete(self)
             session.commit()
-
-    @property
-    def session_class(self):
-        return self._session_class

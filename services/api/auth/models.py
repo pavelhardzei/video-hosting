@@ -3,13 +3,13 @@ from datetime import datetime, timedelta
 from auth import utils
 from auth.schemas.enums import RoleEnum
 from base.database.config import Base
-from base.database.mixins import SaveDeleteDBMixin
+from base.database.mixins import DeleteDBMixin, SaveDBMixin
 from base.settings import settings
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 
-class UserProfile(Base, SaveDeleteDBMixin):
+class UserProfile(Base, SaveDBMixin, DeleteDBMixin):
     __tablename__ = 'user_profile'
 
     id = Column(Integer, primary_key=True)
@@ -32,7 +32,7 @@ class UserProfile(Base, SaveDeleteDBMixin):
         return f'UserProfile(id={self.id}, email={self.email}, is_active={self.is_active})'
 
 
-class UserSecurity(Base, SaveDeleteDBMixin):
+class UserSecurity(Base, SaveDBMixin, DeleteDBMixin):
     __tablename__ = 'user_security'
 
     id = Column(Integer, ForeignKey('user_profile.id', ondelete='CASCADE'), primary_key=True)
