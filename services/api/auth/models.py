@@ -1,7 +1,7 @@
-import enum
 from datetime import datetime, timedelta
 
 from auth import utils
+from auth.schemas.enums import RoleEnum
 from base.database.config import Base
 from base.database.mixins import SaveDeleteDBMixin
 from base.settings import settings
@@ -11,11 +11,6 @@ from sqlalchemy.orm import relationship
 
 class UserProfile(Base, SaveDeleteDBMixin):
     __tablename__ = 'user_profile'
-
-    class RoleEnum(str, enum.Enum):
-        admin = 'admin'
-        moderator = 'moderator'
-        viewer = 'viewer'
 
     id = Column(Integer, primary_key=True)
     username = Column(String(30))

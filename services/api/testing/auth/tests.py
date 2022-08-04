@@ -3,7 +3,7 @@ from unittest.mock import ANY
 
 from auth import utils
 from auth.models import UserProfile
-from auth.schemas.enums import EmailTypeEnum
+from auth.schemas.enums import EmailTypeEnum, RoleEnum
 from auth.utils import fm
 from base.schemas.enums import ErrorCodeEnum
 from base.settings import email_settings, settings
@@ -29,7 +29,7 @@ def test_signup_flow(session):
                                         'email': 'test@test.com',
                                         'username': 'test',
                                         'is_active': False,
-                                        'role': UserProfile.RoleEnum.viewer}}
+                                        'role': RoleEnum.viewer}}
 
     assert session.query(UserProfile).count() == 1
     user = session.query(UserProfile).first()
@@ -171,7 +171,7 @@ def test_validate_refreshed_token(user, user_security, user_token):
                                    'email': user.email,
                                    'username': user.username,
                                    'is_active': True,
-                                   'role': UserProfile.RoleEnum.viewer}
+                                   'role': RoleEnum.viewer}
 
 
 def test_refresh_token_invalid_token(user, user_security):
@@ -196,7 +196,7 @@ def test_get_current_user(user, user_security, user_token):
                                'email': user.email,
                                'username': user.username,
                                'is_active': True,
-                               'role': UserProfile.RoleEnum.viewer}
+                               'role': RoleEnum.viewer}
 
 
 def test_get_current_user_inactive(user1_token):
@@ -242,7 +242,7 @@ def test_patch_current_user(user, user_security, user_token):
                                'email': user.email,
                                'username': 'updated',
                                'is_active': True,
-                               'role': UserProfile.RoleEnum.viewer}
+                               'role': RoleEnum.viewer}
 
 
 def test_delete_current_user_flow(user, user_token, user_security, session):
