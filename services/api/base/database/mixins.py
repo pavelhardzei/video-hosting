@@ -20,9 +20,9 @@ class SaveDBMixin(BaseDBMixin):
                 session.add(self)
                 session.commit()
                 session.refresh(self)
-            except IntegrityError as e:
+            except IntegrityError:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail=f'{e.orig}',
+                                    detail='Unique constraints violation',
                                     headers={'Error-Code': ErrorCodeEnum.already_exists})
 
 

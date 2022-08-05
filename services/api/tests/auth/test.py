@@ -50,10 +50,7 @@ def test_signup_email_already_exists(user):
                                                          'password': 'testing321'})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail':
-                               'duplicate key value violates unique constraint \"user_profile_email_key\"\n'
-                               f'DETAIL:  Key (email)=({user.email}) already exists.\n',
-                               'error_code': ErrorCodeEnum.already_exists}
+    assert response.json() == {'detail': 'Unique constraints violation', 'error_code': ErrorCodeEnum.already_exists}
 
 
 def test_email_verification_email_is_already_verified(user, user_security):
