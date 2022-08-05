@@ -3,6 +3,8 @@ from pathlib import Path
 
 from pydantic import BaseSettings, EmailStr
 
+PROJ_DIR = Path(__file__).resolve().parent.parent
+
 
 class Settings(BaseSettings):
     sqlalchemy_database_url: str
@@ -26,7 +28,7 @@ class EmailSettings(BaseSettings):
     MAIL_SERVER: str
     MAIL_TLS: bool
     MAIL_SSL: bool
-    TEMPLATE_FOLDER: str = os.path.join(Path(__file__).resolve().parent.parent, 'templates')
+    TEMPLATE_FOLDER: str = os.path.join(PROJ_DIR, 'templates')
 
     class Config:
         env_file_encoding = 'utf-8'
