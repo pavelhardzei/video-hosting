@@ -2,18 +2,19 @@ from base.database.config import SessionLocal
 from base.schemas.enums import ErrorCodeEnum
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import scoped_session
 
 
 class BaseDBMixin:
     _session_class = SessionLocal
 
     @property
-    def session_class(self):
+    def session_class(self) -> scoped_session:
         return self._session_class
 
 
 class SaveDBMixin(BaseDBMixin):
-    def save(self):
+    def save(self) -> None:
         with self.session_class() as session:
             try:
                 session.add(self)
@@ -26,7 +27,7 @@ class SaveDBMixin(BaseDBMixin):
 
 
 class DeleteDBMixin(BaseDBMixin):
-    def delete(self):
+    def delete(self) -> None:
         with self.session_class() as session:
             session.delete(self)
             session.commit()

@@ -1,6 +1,6 @@
 from auth.routers import router as auth_router
 from base.schemas.enums import ErrorCodeEnum
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -32,7 +32,7 @@ app.include_router(router)
 
 
 @app.exception_handler(StarletteHTTPException)
-def http_exception_handler(request, e):
+def http_exception_handler(request: Request, e: StarletteHTTPException):
     return JSONResponse(status_code=e.status_code,
                         content={'detail': e.detail,
                                  'error_code': e.headers.get('Error-Code', ErrorCodeEnum.base_error)

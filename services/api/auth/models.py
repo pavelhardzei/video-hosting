@@ -22,10 +22,10 @@ class UserProfile(Base, SaveDBMixin, DeleteDBMixin):
     security = relationship('UserSecurity', back_populates='user', lazy='selectin',
                             uselist=False, cascade='all, delete')
 
-    def set_password(self, plain_password):
+    def set_password(self, plain_password: str) -> None:
         self.password = utils.pwd_context.hash(plain_password)
 
-    def check_password(self, plain_password):
+    def check_password(self, plain_password: str) -> bool:
         return utils.pwd_context.verify(plain_password, self.password)
 
     def __repr__(self):
@@ -44,13 +44,13 @@ class UserSecurity(Base, SaveDBMixin, DeleteDBMixin):
     user = relationship('UserProfile', back_populates='security')
 
     @property
-    def is_resend_ready(self):
+    def is_resend_ready(self) -> bool:
         return datetime.utcnow() > self.email_sent_time + timedelta(seconds=settings.email_resend_timeout_seconds)
 
-    def check_access_token(self, access_token):
+    def check_access_token(self, access_token: str) -> bool:
         return self.access_token == access_token
 
-    def check_secondary_token(self, secondary_token):
+    def check_secondary_token(self, secondary_token: str) -> bool:
         return self.secondary_token == secondary_token
 
     def __repr__(self):

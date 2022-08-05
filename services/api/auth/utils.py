@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from auth.schemas.enums import EmailTypeEnum
 from base.schemas.enums import ErrorCodeEnum
@@ -12,7 +12,7 @@ from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
-def create_token(data: dict, expire_minutes=None):
+def create_token(data: dict, expire_minutes: Optional[int] = None) -> str:
     access_token_expire_minutes = expire_minutes if expire_minutes else settings.access_token_expire_minutes
 
     to_encode = data.copy()
@@ -22,7 +22,7 @@ def create_token(data: dict, expire_minutes=None):
     return encoded_jwt
 
 
-def decode_token(token: str, **kwargs):
+def decode_token(token: str, **kwargs) -> Dict[str, Any]:
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm], **kwargs)
     except JWTError as e:
@@ -36,7 +36,7 @@ fm = FastMail(ConnectionConfig(**email_settings.dict()))
 
 
 def send_mail(recipients: List[str], body: Dict[str, Any], email_type: EmailTypeEnum,
-              background_tasks: BackgroundTasks):
+              background_tasks: BackgroundTasks) -> None:
     message = MessageSchema(subject='Email Verification',
                             recipients=recipients,
                             template_body=body)
