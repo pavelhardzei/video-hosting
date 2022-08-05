@@ -6,8 +6,8 @@ from base.database.mixins import BaseDBMixin
 from base.main import app
 from pytest_factoryboy import LazyFixture, register
 from sqlalchemy.orm import scoped_session, sessionmaker
-from testing import test_session_dependency
-from testing.auth.factories import UserProfileFactory, UserSecurityFactory
+from tests import test_session_dependency
+from tests.auth.factories import UserProfileFactory, UserSecurityFactory
 
 register(UserProfileFactory, 'user', email='test@test.com', username='test', is_active=True)
 

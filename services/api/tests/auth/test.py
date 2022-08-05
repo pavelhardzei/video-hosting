@@ -9,7 +9,7 @@ from base.schemas.enums import ErrorCodeEnum
 from base.settings import email_settings, settings
 from fastapi import status
 from freezegun import freeze_time
-from testing import client
+from tests import client
 
 
 def test_signup_flow(session):
