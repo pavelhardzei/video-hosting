@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
+from auth import exceptions
 from auth.schemas.enums import EmailTypeEnum
-from base.schemas.enums import ErrorCodeEnum
 from base.settings import email_settings, settings
-from fastapi import BackgroundTasks, HTTPException, status
+from fastapi import BackgroundTasks
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -26,9 +26,7 @@ def decode_token(token: str, **kwargs) -> Dict[str, Any]:
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm], **kwargs)
     except JWTError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail=f'{e}',
-                            headers={'Error-Code': ErrorCodeEnum.invalid_token})
+        raise exceptions.InvalidTokenException(detail=f'{e}')
     return payload
 
 
@@ -37,8 +35,6 @@ fm = FastMail(ConnectionConfig(**email_settings.dict()))
 
 def send_mail(recipients: List[str], body: Dict[str, Any], email_type: EmailTypeEnum,
               background_tasks: BackgroundTasks) -> None:
-    message = MessageSchema(subject='Email Verification',
-                            recipients=recipients,
-                            template_body=body)
+    message = MessageSchema(subject='Email Verification', recipients=recipients, template_body=body)
 
     background_tasks.add_task(fm.send_message, message, template_name=f'email/{email_type}.html')

@@ -59,12 +59,12 @@ def test_email_verification_email_is_already_verified(user, user_security):
     assert response.json() == {'detail': 'Email is already verified', 'error_code': ErrorCodeEnum.already_verified}
 
 
-def test_email_verification_invalid_email(user1, user1_security):
+def test_email_verification_invalid_token(user1, user1_security):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         response = client.post('/api/v1/auth/email-verification/',
                                json={'token': utils.create_token({'id': user1.id})})
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
@@ -153,7 +153,7 @@ def test_refresh_token(user, user_security, user_token):
         assert user.security.access_token != user_token
 
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
@@ -175,7 +175,7 @@ def test_refresh_token_invalid_token(user, user_security):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         response = client.post('/api/v1/auth/refresh-token/',
                                json={'access_token': utils.create_token({'id': user.id})})
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
@@ -217,7 +217,7 @@ def test_get_current_user_invalid_token(user, user_security, user_token):
         invalid_token = utils.create_token({'id': user.id})
 
         response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f"Bearer {invalid_token}"})
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
@@ -268,7 +268,7 @@ def test_delete_current_user_invalid_token(user, user_token, user_security):
                                  json={'token': utils.create_token({'id': user.id})},
                                  headers={'Authorization': f'Bearer {user_token}'})
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
@@ -304,5 +304,5 @@ def test_user_password_change_invalid_token(user, user_security):
                               json={'new_password': 'updated_password',
                                     'token': f"{utils.create_token({'id': user.id})}"})
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}

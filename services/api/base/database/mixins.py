@@ -1,6 +1,5 @@
+from base import exceptions
 from base.database.config import SessionLocal
-from base.schemas.enums import ErrorCodeEnum
-from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import scoped_session
 
@@ -21,9 +20,7 @@ class SaveDBMixin(BaseDBMixin):
                 session.commit()
                 session.refresh(self)
             except IntegrityError:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail='Unique constraints violation',
-                                    headers={'Error-Code': ErrorCodeEnum.already_exists})
+                raise exceptions.AlreadyExistsException()
 
 
 class DeleteDBMixin(BaseDBMixin):
