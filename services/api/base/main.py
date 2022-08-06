@@ -13,7 +13,7 @@ origins = [
     'https://darktheater-app.web.app',
     'https://darktheater-app.firebaseapp.com',
     'https://darktheater.net',
-    'http://localhost:4000'
+    'http://localhost:4200'
 ]
 
 app.add_middleware(
