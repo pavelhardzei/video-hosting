@@ -1,5 +1,5 @@
 from auth.routers import router as auth_router
-from base.database.dependencies import session_dependency
+from base.database.dependencies import session_commit_hook
 from base.exceptions import HTTPExceptionWithCode
 from base.schemas.enums import ErrorCodeEnum
 from fastapi import APIRouter, Depends, FastAPI, Request
@@ -26,7 +26,7 @@ app.add_middleware(
 
 router = APIRouter(
     prefix='/api/v1',
-    dependencies=[Depends(session_dependency)]
+    dependencies=[Depends(session_commit_hook)]
 )
 
 router.include_router(auth_router)

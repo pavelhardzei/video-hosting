@@ -1,7 +1,7 @@
 import pytest
 from auth import utils
 from base.database.config import Base, engine
-from base.database.dependencies import session_dependency
+from base.database.dependencies import session_commit_hook, session_dependency
 from base.database.mixins import BaseDBMixin
 from base.main import app
 from pytest_factoryboy import LazyFixture, register
@@ -38,6 +38,7 @@ def session(connection):
     UserSecurityFactory._meta.sqlalchemy_session = session
 
     app.dependency_overrides[session_dependency] = test_session_dependency(session)
+    app.dependency_overrides[session_commit_hook] = lambda: None
 
     for table in reversed(Base.metadata.sorted_tables):
         session.execute(table.delete())
