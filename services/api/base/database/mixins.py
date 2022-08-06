@@ -14,17 +14,14 @@ class BaseDBMixin:
 
 class SaveDBMixin(BaseDBMixin):
     def save(self) -> None:
-        with self.session_class() as session:
-            try:
-                session.add(self)
-                session.commit()
-                session.refresh(self)
-            except IntegrityError:
-                raise exceptions.AlreadyExistsException()
+        try:
+            self.session_class.add(self)
+            self.session_class.flush()
+        except IntegrityError:
+            raise exceptions.AlreadyExistsException()
 
 
 class DeleteDBMixin(BaseDBMixin):
     def delete(self) -> None:
-        with self.session_class() as session:
-            session.delete(self)
-            session.commit()
+        self.session_class.delete(self)
+        self.session_class.flush()

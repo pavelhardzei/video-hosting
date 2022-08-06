@@ -1,7 +1,8 @@
 from auth.routers import router as auth_router
+from base.database.dependencies import session_dependency
 from base.exceptions import HTTPExceptionWithCode
 from base.schemas.enums import ErrorCodeEnum
-from fastapi import APIRouter, FastAPI, Request
+from fastapi import APIRouter, Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -24,7 +25,8 @@ app.add_middleware(
 )
 
 router = APIRouter(
-    prefix='/api/v1'
+    prefix='/api/v1',
+    dependencies=[Depends(session_dependency)]
 )
 
 router.include_router(auth_router)
