@@ -13,14 +13,6 @@ class HTTPExceptionWithCode(HTTPException):
         self.error_code = error_code
 
 
-class BaseErrorException(HTTPExceptionWithCode):
-    def __init__(self, status_code: int = status.HTTP_400_BAD_REQUEST,
-                 error_code: ErrorCodeEnum = ErrorCodeEnum.base_error,
-                 detail: Any = None,
-                 headers: Optional[Dict[str, Any]] = None):
-        super().__init__(status_code, error_code, detail, headers)
-
-
 class NotFoundException(HTTPExceptionWithCode):
     def __init__(self, status_code: int = status.HTTP_404_NOT_FOUND,
                  error_code: ErrorCodeEnum = ErrorCodeEnum.not_found,

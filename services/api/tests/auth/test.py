@@ -196,6 +196,13 @@ def test_get_current_user(user, user_security, user_token):
                                'role': RoleEnum.viewer}
 
 
+def test_get_current_user_not_authenticated():
+    response = client.get('/api/v1/auth/users/me/')
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'Not authenticated', 'error_code': ErrorCodeEnum.base_error}
+
+
 def test_get_current_user_inactive(user1_token):
     response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user1_token}'})
 
