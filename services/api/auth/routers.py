@@ -69,10 +69,14 @@ def change_password(data: schemas.UserPasswordUpdateSchema, background_tasks: Ba
 @router.post('/email-confirmation/', response_model=schemas.DetailSchema)
 def email_confirmation(background_tasks: BackgroundTasks, data: schemas.EmailSchema,
                        session: Session = Depends(session_dependency)):
+    ''' Email address based confirmation email '''
+
     user = session.query(UserProfile).filter(UserProfile.email == data.email).first()
 
     if data.email_type == EmailTypeEnum.verification:
         check_permissions(user, (permissions.UserEmailNotVerified(), ))
+    else:
+        check_permissions(user, (permissions.UserActive(), ))
     check_permissions(user, (permissions.UserEmailReady(), ))
 
     user.security.email_sent_time = datetime.utcnow()

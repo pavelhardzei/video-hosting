@@ -82,6 +82,9 @@ def test_email_confirmation(user1, user1_security):
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {'detail': 'Email sent'}
 
+        user1.is_active = True
+        user1.save()
+
         response = client.post('/api/v1/auth/email-confirmation/',
                                json={'email': user1.email, 'email_type': EmailTypeEnum.password_change})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -90,7 +93,7 @@ def test_email_confirmation(user1, user1_security):
 
         with freeze_time(datetime.utcnow() + timedelta(seconds=settings.email_resend_timeout_seconds)):
             response = client.post('/api/v1/auth/email-confirmation/',
-                                   json={'email': user1.email, 'email_type': EmailTypeEnum.verification})
+                                   json={'email': user1.email, 'email_type': EmailTypeEnum.password_change})
 
             assert response.status_code == status.HTTP_200_OK
             assert response.json() == {'detail': 'Email sent'}
