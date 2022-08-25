@@ -3,7 +3,7 @@ from unittest.mock import ANY
 
 from auth import utils
 from auth.models import UserProfile
-from auth.schemas.enums import EmailTypeEnum, RoleEnum
+from auth.schemas.enums import ConfirmationTypeEnum, RoleEnum
 from auth.utils import fm
 from base.schemas.enums import ErrorCodeEnum
 from base.settings import email_settings, settings
@@ -73,7 +73,7 @@ def test_email_confirmation(user1, user1_security):
 
     with fm.record_messages() as outbox:
         response = client.post('/api/v1/auth/email-confirmation/',
-                               json={'email': user1.email, 'email_type': EmailTypeEnum.verification})
+                               json={'email': user1.email, 'email_type': ConfirmationTypeEnum.verification})
 
         assert len(outbox) == 1
         assert outbox[0]['from'] == email_settings.MAIL_FROM
@@ -86,14 +86,14 @@ def test_email_confirmation(user1, user1_security):
         user1.save()
 
         response = client.post('/api/v1/auth/email-confirmation/',
-                               json={'email': user1.email, 'email_type': EmailTypeEnum.password_change})
+                               json={'email': user1.email, 'email_type': ConfirmationTypeEnum.password_change})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.json() == {'detail': f'You can resend email in {settings.email_resend_timeout_seconds} seconds',
                                    'error_code': ErrorCodeEnum.timeout_error}
 
         with freeze_time(datetime.utcnow() + timedelta(seconds=settings.email_resend_timeout_seconds)):
             response = client.post('/api/v1/auth/email-confirmation/',
-                                   json={'email': user1.email, 'email_type': EmailTypeEnum.password_change})
+                                   json={'email': user1.email, 'email_type': ConfirmationTypeEnum.password_change})
 
             assert response.status_code == status.HTTP_200_OK
             assert response.json() == {'detail': 'Email sent'}
@@ -103,14 +103,14 @@ def test_email_confirmation(user1, user1_security):
 
 def test_email_confirmation_email_is_already_verified(user):
     response = client.post('/api/v1/auth/email-confirmation/',
-                           json={'email': user.email, 'email_type': EmailTypeEnum.verification})
+                           json={'email': user.email, 'email_type': ConfirmationTypeEnum.verification})
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'Email is already verified', 'error_code': ErrorCodeEnum.already_verified}
 
 
 def test_email_confirmation_user_does_not_exist():
     response = client.post('/api/v1/auth/email-confirmation/',
-                           json={'email': 'fake@example.com', 'email_type': EmailTypeEnum.verification})
+                           json={'email': 'fake@example.com', 'email_type': ConfirmationTypeEnum.verification})
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.not_found}
@@ -264,8 +264,9 @@ def test_delete_current_user_flow(user, user_token, user_security, session):
     fm.config.SUPPRESS_SEND = 1
 
     with fm.record_messages() as outbox:
-        response = client.post('/api/v1/auth/email-confirmation/',
-                               json={'email': user.email, 'email_type': EmailTypeEnum.account_deletion})
+        response = client.post('/api/v1/auth/users/me/email-confirmation/',
+                               json={'email_type': ConfirmationTypeEnum.account_deletion},
+                               headers={'Authorization': f'Bearer {user_token}'})
 
         assert len(outbox) == 1
         assert outbox[0]['from'] == email_settings.MAIL_FROM
@@ -295,7 +296,7 @@ def test_user_password_change_flow(user, user_security, session):
 
     with fm.record_messages() as outbox:
         response = client.post('/api/v1/auth/email-confirmation/',
-                               json={'email': user.email, 'email_type': EmailTypeEnum.password_change})
+                               json={'email': user.email, 'email_type': ConfirmationTypeEnum.password_change})
 
         assert len(outbox) == 1
         assert outbox[0]['from'] == email_settings.MAIL_FROM

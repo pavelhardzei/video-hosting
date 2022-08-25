@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from auth import exceptions
-from auth.schemas.enums import EmailTypeEnum
+from auth.schemas.enums import ConfirmationTypeEnum
 from base.settings import email_settings, settings
 from fastapi import BackgroundTasks
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
@@ -33,7 +33,7 @@ def decode_token(token: str, **kwargs) -> Dict[str, Any]:
 fm = FastMail(ConnectionConfig(**email_settings.dict()))
 
 
-def send_mail(recipients: List[str], body: Dict[str, Any], email_type: EmailTypeEnum,
+def send_mail(recipients: List[str], body: Dict[str, Any], email_type: ConfirmationTypeEnum,
               background_tasks: BackgroundTasks) -> None:
     message = MessageSchema(subject='Email Verification', recipients=recipients, template_body=body)
 

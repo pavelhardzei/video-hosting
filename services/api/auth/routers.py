@@ -3,7 +3,7 @@ from datetime import datetime
 from auth import exceptions, permissions, utils
 from auth.models import UserProfile, UserSecurity
 from auth.schemas import schemas
-from auth.schemas.enums import EmailTypeEnum
+from auth.schemas.enums import ConfirmationTypeEnum
 from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
@@ -28,8 +28,8 @@ def signup(data: schemas.UserProfileCreateSchema, background_tasks: BackgroundTa
     user.save()
 
     utils.send_mail([user.email], {'token': user.security.secondary_token,
-                                   'email_type': EmailTypeEnum.verification.value},
-                    EmailTypeEnum.verification, background_tasks)
+                                   'email_type': ConfirmationTypeEnum.verification.value},
+                    ConfirmationTypeEnum.verification, background_tasks)
 
     return {'access_token': None, 'user': user}
 
@@ -61,19 +61,19 @@ def change_password(data: schemas.UserPasswordUpdateSchema, background_tasks: Ba
     user.save()
 
     utils.send_mail([user.email], {'detail': 'password changed'},
-                    EmailTypeEnum.password_changed, background_tasks)
+                    ConfirmationTypeEnum.password_changed, background_tasks)
 
     return {'detail': 'Password changed'}
 
 
 @router.post('/email-confirmation/', response_model=schemas.DetailSchema)
-def email_confirmation(background_tasks: BackgroundTasks, data: schemas.EmailSchema,
+def email_confirmation(background_tasks: BackgroundTasks, data: schemas.ConfirmationEmailBasedSchema,
                        session: Session = Depends(session_dependency)):
     ''' Email address based confirmation email '''
 
     user = session.query(UserProfile).filter(UserProfile.email == data.email).first()
 
-    if data.email_type == EmailTypeEnum.verification:
+    if data.email_type == ConfirmationTypeEnum.verification:
         check_permissions(user, (permissions.UserEmailNotVerified(), ))
     else:
         check_permissions(user, (permissions.UserActive(), ))

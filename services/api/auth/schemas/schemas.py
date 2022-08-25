@@ -1,6 +1,6 @@
 from typing import Optional
 
-from auth.schemas.enums import EmailBaseEnum, RoleEnum
+from auth.schemas.enums import ConfirmationEmailBasedEnum, ConfirmationTokenBasedEnum, RoleEnum
 from pydantic import BaseModel, EmailStr
 
 
@@ -44,9 +44,13 @@ class TokenSchema(BaseModel):
     token: str
 
 
-class EmailSchema(BaseModel):
+class ConfirmationEmailBasedSchema(BaseModel):
     email: EmailStr
-    email_type: EmailBaseEnum
+    email_type: ConfirmationEmailBasedEnum
+
+
+class ConfirmationTokenBasedSchema(BaseModel):
+    email_type: ConfirmationTokenBasedEnum
 
 
 class DetailSchema(BaseModel):

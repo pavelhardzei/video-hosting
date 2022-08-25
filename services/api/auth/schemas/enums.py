@@ -7,13 +7,16 @@ class RoleEnum(str, enum.Enum):
     viewer = 'viewer'
 
 
-class EmailBaseEnum(str, enum.Enum):
+class ConfirmationEmailBasedEnum(str, enum.Enum):
     verification = 'verification'
     password_change = 'password_change'
+
+
+class ConfirmationTokenBasedEnum(str, enum.Enum):
     account_deletion = 'account_deletion'
 
 
-class EmailTypeEnum(str, enum.Enum):
+class ConfirmationTypeEnum(str, enum.Enum):
     verification = 'verification'
     password_change = 'password_change'
     password_changed = 'password_changed'
