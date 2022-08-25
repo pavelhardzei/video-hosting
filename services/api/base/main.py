@@ -1,4 +1,5 @@
 from auth.routers import router as auth_router
+from auth.users.routers import router as users_router
 from base.database.dependencies import session_commit_hook
 from base.exceptions import HTTPExceptionWithCode
 from base.schemas.enums import ErrorCodeEnum
@@ -30,6 +31,7 @@ router = APIRouter(
 )
 
 router.include_router(auth_router)
+router.include_router(users_router)
 
 app.include_router(router)
 

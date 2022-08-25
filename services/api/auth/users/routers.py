@@ -10,7 +10,8 @@ from base.schemas.schemas import ErrorSchema
 from fastapi import APIRouter, BackgroundTasks, Depends, status
 
 router = APIRouter(
-    prefix='/users/me'
+    prefix='/users/me',
+    tags=['users']
 )
 
 

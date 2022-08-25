@@ -4,7 +4,6 @@ from auth import exceptions, permissions, utils
 from auth.models import UserProfile, UserSecurity
 from auth.schemas import schemas
 from auth.schemas.enums import ConfirmationTypeEnum
-from auth.users.routers import router as users_router
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
 from fastapi import APIRouter, BackgroundTasks, Depends, status
@@ -15,8 +14,6 @@ router = APIRouter(
     prefix='/auth',
     tags=['auth']
 )
-
-router.include_router(users_router)
 
 
 @router.post('/signup/', response_model=schemas.UserTokenSchema, status_code=status.HTTP_201_CREATED)

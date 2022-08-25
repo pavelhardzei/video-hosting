@@ -171,7 +171,7 @@ def test_refresh_expired_token(user, user_security, user_token):
 def test_validate_refreshed_token(user, user_security, user_token):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
-        response = client.get('/api/v1/auth/users/me/',
+        response = client.get('/api/v1/users/me/',
                               headers={'Authorization': f'Bearer {user.security.access_token}'})
 
         assert response.status_code == status.HTTP_200_OK
@@ -197,7 +197,7 @@ def test_refresh_token_user_is_inactive(user1_token):
 
 
 def test_get_current_user(user, user_security, user_token):
-    response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user_token}'})
+    response = client.get('/api/v1/users/me/', headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'id': ANY,
@@ -208,47 +208,46 @@ def test_get_current_user(user, user_security, user_token):
 
 
 def test_get_current_user_not_authenticated():
-    response = client.get('/api/v1/auth/users/me/')
+    response = client.get('/api/v1/users/me/')
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Not authenticated', 'error_code': ErrorCodeEnum.base_error}
 
 
 def test_get_current_user_inactive(user1_token):
-    response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user1_token}'})
+    response = client.get('/api/v1/users/me/', headers={'Authorization': f'Bearer {user1_token}'})
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'User is inactive', 'error_code': ErrorCodeEnum.user_inactive}
 
 
 def test_get_current_user_invalid_token(user, user_security, user_token):
-    response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user_token}_fake'})
+    response = client.get('/api/v1/users/me/', headers={'Authorization': f'Bearer {user_token}_fake'})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Signature verification failed.', 'error_code': ErrorCodeEnum.invalid_token}
 
-    response = client.get('/api/v1/auth/users/me/', headers={'Authorization':
-                                                             f"Bearer {utils.create_token({'id': 0})}"})
+    response = client.get('/api/v1/users/me/', headers={'Authorization': f"Bearer {utils.create_token({'id': 0})}"})
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.not_found}
 
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         invalid_token = utils.create_token({'id': user.id})
 
-        response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f"Bearer {invalid_token}"})
+        response = client.get('/api/v1/users/me/', headers={'Authorization': f"Bearer {invalid_token}"})
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
 def test_get_current_user_token_expired(user_token):
     with freeze_time(datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes, seconds=1)):
-        response = client.get('/api/v1/auth/users/me/', headers={'Authorization': f'Bearer {user_token}'})
+        response = client.get('/api/v1/users/me/', headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'Signature has expired.', 'error_code': ErrorCodeEnum.invalid_token}
 
 
 def test_patch_current_user(user, user_security, user_token):
-    response = client.patch('/api/v1/auth/users/me/',
+    response = client.patch('/api/v1/users/me/',
                             json={'username': 'updated'},
                             headers={'Authorization': f'Bearer {user_token}'})
 
@@ -264,7 +263,7 @@ def test_delete_current_user_flow(user, user_token, user_security, session):
     fm.config.SUPPRESS_SEND = 1
 
     with fm.record_messages() as outbox:
-        response = client.post('/api/v1/auth/users/me/email-confirmation/',
+        response = client.post('/api/v1/users/me/email-confirmation/',
                                json={'email_type': ConfirmationTypeEnum.account_deletion},
                                headers={'Authorization': f'Bearer {user_token}'})
 
@@ -272,7 +271,7 @@ def test_delete_current_user_flow(user, user_token, user_security, session):
         assert outbox[0]['from'] == email_settings.MAIL_FROM
         assert outbox[0]['to'] == user.email
 
-    response = client.delete('/api/v1/auth/users/me/',
+    response = client.delete('/api/v1/users/me/',
                              json={'token': user.security.secondary_token},
                              headers={'Authorization': f'Bearer {user_token}'})
 
@@ -283,7 +282,7 @@ def test_delete_current_user_flow(user, user_token, user_security, session):
 
 def test_delete_current_user_invalid_token(user, user_token, user_security):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
-        response = client.delete('/api/v1/auth/users/me/',
+        response = client.delete('/api/v1/users/me/',
                                  json={'token': utils.create_token({'id': user.id})},
                                  headers={'Authorization': f'Bearer {user_token}'})
 
