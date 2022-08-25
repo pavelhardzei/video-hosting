@@ -60,7 +60,7 @@ def change_password(data: schemas.UserPasswordUpdateSchema, background_tasks: Ba
     user.security.secondary_token = None
     user.save()
 
-    utils.send_mail([user.email], {'detal': 'password changed'},
+    utils.send_mail([user.email], {'detail': 'password changed'},
                     EmailTypeEnum.password_changed, background_tasks)
 
     return {'detail': 'Password changed'}
