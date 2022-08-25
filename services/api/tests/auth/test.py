@@ -157,6 +157,14 @@ def test_refresh_token(user, user_security, user_token):
         assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
+def test_refresh_expired_token(user, user_security, user_token):
+    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes, seconds=1)):
+        response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {'access_token': user.security.access_token}
+        assert user.security.access_token != user_token
+
+
 def test_validate_refreshed_token(user, user_security, user_token):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
