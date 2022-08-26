@@ -68,6 +68,15 @@ def test_email_verification_invalid_token(user1, user1_security):
         assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
 
 
+def test_email_verification_token_expired(user1, user1_security):
+    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes, seconds=1)):
+        response = client.post('/api/v1/auth/email-verification/',
+                               json={'token': user1.security.secondary_token})
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json() == {'detail': 'Signature has expired.', 'error_code': ErrorCodeEnum.token_expired}
+
+
 def test_email_confirmation(user1, user1_security):
     fm.config.SUPPRESS_SEND = 1
 
@@ -273,7 +282,7 @@ def test_get_current_user_token_expired(user_token):
         response = client.get('/api/v1/users/me/', headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {'detail': 'Signature has expired.', 'error_code': ErrorCodeEnum.invalid_token}
+    assert response.json() == {'detail': 'Signature has expired.', 'error_code': ErrorCodeEnum.access_token_expired}
 
 
 def test_patch_current_user(user, user_security, user_token):

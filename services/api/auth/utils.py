@@ -25,6 +25,18 @@ def create_token(data: dict, expire_minutes: Optional[int] = None) -> str:
 def decode_token(token: str, **kwargs) -> Dict[str, Any]:
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm], **kwargs)
+    except ExpiredSignatureError as e:
+        raise exceptions.TokenExpiredException(detail=f'{e}')
+    except JWTError as e:
+        raise exceptions.InvalidTokenException(detail=f'{e}')
+    return payload
+
+
+def decode_access_token(token: str, **kwargs) -> Dict[str, Any]:
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm], **kwargs)
+    except ExpiredSignatureError as e:
+        raise exceptions.AccessTokenExpiredException(detail=f'{e}')
     except JWTError as e:
         raise exceptions.InvalidTokenException(detail=f'{e}')
     return payload

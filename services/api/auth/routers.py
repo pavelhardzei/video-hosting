@@ -104,7 +104,7 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
 
 @router.post('/refresh-token/', response_model=schemas.AccessTokenSchema)
 def refresh_token(data: schemas.AccessTokenSchema, session: Session = Depends(session_dependency)):
-    payload = utils.decode_token(data.access_token, options={'verify_exp': False})
+    payload = utils.decode_access_token(data.access_token, options={'verify_exp': False})
 
     user = session.get(UserProfile, payload.get('id'))
     check_permissions(user, (permissions.UserActive(), permissions.UserAccessTokenValid(data.access_token)))

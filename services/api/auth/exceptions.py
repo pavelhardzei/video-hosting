@@ -22,6 +22,22 @@ class InvalidTokenException(HTTPExceptionWithCode):
         super().__init__(status_code, error_code, detail, headers)
 
 
+class TokenExpiredException(HTTPExceptionWithCode):
+    def __init__(self, status_code: int = status.HTTP_401_UNAUTHORIZED,
+                 error_code: ErrorCodeEnum = ErrorCodeEnum.token_expired,
+                 detail: Any = 'Token is expired',
+                 headers: Optional[Dict[str, Any]] = None):
+        super().__init__(status_code, error_code, detail, headers)
+
+
+class AccessTokenExpiredException(HTTPExceptionWithCode):
+    def __init__(self, status_code: int = status.HTTP_401_UNAUTHORIZED,
+                 error_code: ErrorCodeEnum = ErrorCodeEnum.access_token_expired,
+                 detail: Any = 'Access token is expired',
+                 headers: Optional[Dict[str, Any]] = None):
+        super().__init__(status_code, error_code, detail, headers)
+
+
 class UserInactiveException(HTTPExceptionWithCode):
     def __init__(self, status_code: int = status.HTTP_401_UNAUTHORIZED,
                  error_code: ErrorCodeEnum = ErrorCodeEnum.user_inactive,
