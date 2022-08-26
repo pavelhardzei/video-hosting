@@ -15,9 +15,9 @@ router = APIRouter(
 )
 
 
-@router.post('/email-confirmation/', response_model=schemas.DetailSchema)
-def email_confirmation(background_tasks: BackgroundTasks, data: schemas.ConfirmationTokenBasedSchema,
-                       user: UserProfile = Depends(current_user)):
+@router.post('/send-email-confirmation/', response_model=schemas.DetailSchema)
+def send_email_confirmation(background_tasks: BackgroundTasks, data: schemas.ConfirmationTokenBasedSchema,
+                            user: UserProfile = Depends(current_user)):
     ''' Access token based confirmation email '''
 
     check_permissions(user, (permissions.UserEmailReady(), ))

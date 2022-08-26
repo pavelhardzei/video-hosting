@@ -63,9 +63,9 @@ def change_password(data: schemas.UserPasswordUpdateSchema, background_tasks: Ba
     return {'detail': 'Password changed'}
 
 
-@router.post('/email-confirmation/', response_model=schemas.DetailSchema)
-def email_confirmation(background_tasks: BackgroundTasks, data: schemas.ConfirmationEmailBasedSchema,
-                       session: Session = Depends(session_dependency)):
+@router.post('/send-email-confirmation/', response_model=schemas.DetailSchema)
+def send_email_confirmation(background_tasks: BackgroundTasks, data: schemas.ConfirmationEmailBasedSchema,
+                            session: Session = Depends(session_dependency)):
     ''' Email address based confirmation email '''
 
     user = session.query(UserProfile).filter(UserProfile.email == data.email).first()
