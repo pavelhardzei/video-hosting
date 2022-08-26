@@ -69,7 +69,7 @@ def test_email_verification_invalid_token(user1, user1_security):
 
 
 def test_email_verification_token_expired(user1, user1_security):
-    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes, seconds=1)):
+    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.token_expire_minutes, seconds=1)):
         response = client.post('/api/v1/auth/email-verification/',
                                json={'token': user1.security.secondary_token})
 
@@ -152,7 +152,7 @@ def test_signin_with_existed_token(user, user_security, user_token):
 
 
 def test_signin_with_existed_expired_token(user, user_security, user_token, session):
-    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes, seconds=1)):
+    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.token_expire_minutes, seconds=1)):
         response = client.post('/api/v1/auth/signin/', data={'username': user.email,
                                                              'password': 'testing321'})
         assert response.status_code == status.HTTP_200_OK
@@ -200,7 +200,7 @@ def test_refresh_token(user, user_security, user_token):
 
 
 def test_refresh_expired_token(user, user_security, user_token):
-    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes, seconds=1)):
+    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.token_expire_minutes, seconds=1)):
         response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {'access_token': user.security.access_token}
@@ -278,7 +278,7 @@ def test_get_current_user_invalid_token(user, user_security, user_token):
 
 
 def test_get_current_user_token_expired(user_token):
-    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes, seconds=1)):
+    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.token_expire_minutes, seconds=1)):
         response = client.get('/api/v1/users/me/', headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED

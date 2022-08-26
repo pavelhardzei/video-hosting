@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     sqlalchemy_database_url: str
     secret_key: str
     algorithm: str = 'HS256'
-    access_token_expire_minutes: int = 30
+    token_expire_minutes: int = 30
     email_resend_timeout_seconds = 30
 
     class Config:
