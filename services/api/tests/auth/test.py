@@ -117,7 +117,7 @@ def test_email_confirmation_user_does_not_exist():
 
 
 def test_signin(user, user_security):
-    response = client.post('/api/v1/auth/signin/', data={'username': 'test@test.com',
+    response = client.post('/api/v1/auth/signin/', data={'username': user.email,
                                                          'password': 'testing321'})
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'access_token': user.security.access_token,
@@ -126,6 +126,36 @@ def test_signin(user, user_security):
                                         'username': user.username,
                                         'is_active': user.is_active,
                                         'role': user.role}}
+
+
+def test_signin_with_existed_token(user, user_security, user_token):
+    with freeze_time(datetime.utcnow() + timedelta(seconds=10)):
+        response = client.post('/api/v1/auth/signin/', data={'username': user.email,
+                                                             'password': 'testing321'})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {'access_token': user.security.access_token,
+                                   'user': {'id': user.id,
+                                            'email': user.email,
+                                            'username': user.username,
+                                            'is_active': user.is_active,
+                                            'role': user.role}}
+        assert user.security.access_token == user_token
+
+
+def test_signin_with_existed_expired_token(user, user_security, user_token, session):
+    with freeze_time(datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes, seconds=1)):
+        response = client.post('/api/v1/auth/signin/', data={'username': user.email,
+                                                             'password': 'testing321'})
+        assert response.status_code == status.HTTP_200_OK
+
+        session.refresh(user)
+        assert response.json() == {'access_token': user.security.access_token,
+                                   'user': {'id': user.id,
+                                            'email': user.email,
+                                            'username': user.username,
+                                            'is_active': user.is_active,
+                                            'role': user.role}}
+        assert user.security.access_token != user_token
 
 
 def test_signin_invalid_credentials(session, user):

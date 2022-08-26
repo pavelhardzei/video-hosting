@@ -6,7 +6,7 @@ from auth.schemas.enums import ConfirmationTypeEnum
 from base.settings import email_settings, settings
 from fastapi import BackgroundTasks
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
-from jose import JWTError, jwt
+from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
@@ -28,6 +28,14 @@ def decode_token(token: str, **kwargs) -> Dict[str, Any]:
     except JWTError as e:
         raise exceptions.InvalidTokenException(detail=f'{e}')
     return payload
+
+
+def token_expired(token: str) -> bool:
+    try:
+        jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+    except ExpiredSignatureError:
+        return True
+    return False
 
 
 fm = FastMail(ConnectionConfig(**email_settings.dict()))

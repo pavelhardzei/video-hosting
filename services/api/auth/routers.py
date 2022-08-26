@@ -95,8 +95,9 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
 
     check_permissions(user, (permissions.UserActive(), ))
 
-    user.security.access_token = utils.create_token({'id': user.id})
-    user.save()
+    if user.security.access_token is None or utils.token_expired(user.security.access_token):
+        user.security.access_token = utils.create_token({'id': user.id})
+        user.save()
 
     return {'access_token': user.security.access_token, 'user': user}
 
