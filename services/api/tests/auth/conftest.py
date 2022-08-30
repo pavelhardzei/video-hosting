@@ -1,7 +1,7 @@
 import pytest
 from auth import utils
 from pytest_factoryboy import LazyFixture, register
-from testing.auth.factories import UserProfileFactory, UserSecurityFactory
+from tests.auth.factories import UserProfileFactory, UserSecurityFactory
 
 register(UserProfileFactory, 'user1')
 

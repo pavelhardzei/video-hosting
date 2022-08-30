@@ -10,6 +10,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - .db.env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
   api:
     build: ./services/api/
     volumes:
@@ -24,11 +29,12 @@ services:
     build: ./services/api/
     volumes:
       - ./services/api/:/opt/
-    entrypoint: bash -c "sleep 5 && alembic revision --autogenerate && alembic upgrade head"
+    entrypoint: ./migrationsscript.sh
     env_file:
       - .api.env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
   nginx:
     build: ./services/nginx/
     ports:

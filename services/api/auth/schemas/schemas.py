@@ -1,6 +1,6 @@
-from typing import Union
+from typing import Optional
 
-from auth.schemas.enums import EmailBaseEnum, RoleEnum
+from auth.schemas.enums import ConfirmationEmailBasedEnum, ConfirmationTokenBasedEnum, RoleEnum
 from pydantic import BaseModel, EmailStr
 
 
@@ -23,7 +23,7 @@ class UserProfileSchema(UserProfileBaseSchema):
 
 
 class UserProfileUpdateSchema(BaseModel):
-    username: Union[str, None] = None
+    username: Optional[str] = None
 
 
 class UserPasswordUpdateSchema(BaseModel):
@@ -35,13 +35,22 @@ class AccessTokenSchema(BaseModel):
     access_token: str
 
 
+class UserTokenSchema(BaseModel):
+    access_token: Optional[str] = None
+    user: UserProfileSchema
+
+
 class TokenSchema(BaseModel):
     token: str
 
 
-class EmailSchema(BaseModel):
+class ConfirmationEmailBasedSchema(BaseModel):
     email: EmailStr
-    email_type: EmailBaseEnum
+    email_type: ConfirmationEmailBasedEnum
+
+
+class ConfirmationTokenBasedSchema(BaseModel):
+    email_type: ConfirmationTokenBasedEnum
 
 
 class DetailSchema(BaseModel):

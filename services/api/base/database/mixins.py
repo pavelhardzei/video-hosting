@@ -1,28 +1,27 @@
+from base import exceptions
 from base.database.config import SessionLocal
-from base.schemas.enums import ErrorCodeEnum
-from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import scoped_session
 
 
-class SaveDeleteDBMixin:
+class BaseDBMixin:
     _session_class = SessionLocal
 
-    def save(self):
-        with self.session_class() as session:
-            try:
-                session.add(self)
-                session.commit()
-                session.refresh(self)
-            except IntegrityError as e:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail=f'{e.orig}',
-                                    headers={'Error-Code': ErrorCodeEnum.already_exists})
-
-    def delete(self):
-        with self.session_class() as session:
-            session.delete(self)
-            session.commit()
-
     @property
-    def session_class(self):
+    def session_class(self) -> scoped_session:
         return self._session_class
+
+
+class SaveDBMixin(BaseDBMixin):
+    def save(self) -> None:
+        try:
+            self.session_class.add(self)
+            self.session_class.flush()
+        except IntegrityError:
+            raise exceptions.AlreadyExistsException()
+
+
+class DeleteDBMixin(BaseDBMixin):
+    def delete(self) -> None:
+        self.session_class.delete(self)
+        self.session_class.flush()
