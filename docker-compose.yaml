@@ -29,7 +29,7 @@ services:
     build: ./services/api/
     volumes:
       - ./services/api/:/opt/
-    entrypoint: ./makemigrations.sh
+    entrypoint: ./migrationsscript.sh
     env_file:
       - .api.env
     depends_on:
