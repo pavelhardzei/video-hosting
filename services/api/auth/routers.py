@@ -1,11 +1,12 @@
 from datetime import datetime
 
 from auth import exceptions, permissions, utils
-from auth.models import UserProfile, UserSecurity
+from auth.models import UserProfile, UserRefreshTokens, UserSecurity
 from auth.schemas import schemas
 from auth.schemas.enums import ConfirmationTypeEnum
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
+from base.settings import settings
 from fastapi import APIRouter, BackgroundTasks, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -28,7 +29,7 @@ def signup(data: schemas.UserProfileCreateSchema, background_tasks: BackgroundTa
                                    'email_type': ConfirmationTypeEnum.verification.value},
                     ConfirmationTypeEnum.verification, background_tasks)
 
-    return {'access_token': None, 'user': user}
+    return {'access_token': None, 'refresh_token': None, 'user': user}
 
 
 @router.post('/email-verification/', response_model=schemas.DetailSchema)
@@ -92,24 +93,39 @@ def signin(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = 
 
     if user is None or not user.check_password(form_data.password):
         raise exceptions.InvalidCredentialsException()
-
     check_permissions(user, (permissions.UserActive(), ))
 
     if user.security.access_token is None or utils.token_expired(user.security.access_token):
         user.security.access_token = utils.create_token({'id': user.id})
-        user.save()
 
-    return {'access_token': user.security.access_token, 'user': user}
+    if len(user.refresh_tokens) >= settings.refresh_tokens_number:
+        user.refresh_tokens.sort(key=lambda obj: -obj.id)
+        oldest = user.refresh_tokens.pop()
+        oldest.delete()
 
+    new_refresh_token = utils.create_token({'id': user.id})
+    user.refresh_tokens.append(UserRefreshTokens(refresh_token=new_refresh_token))
 
-@router.post('/refresh-token/', response_model=schemas.AccessTokenSchema)
-def refresh_token(data: schemas.AccessTokenSchema, session: Session = Depends(session_dependency)):
-    payload = utils.decode_access_token(data.access_token, options={'verify_exp': False})
-
-    user = session.get(UserProfile, payload.get('id'))
-    check_permissions(user, (permissions.UserActive(), permissions.UserAccessTokenValid(data.access_token)))
-
-    user.security.access_token = utils.create_token({'id': user.id})
     user.save()
 
-    return {'access_token': user.security.access_token}
+    return {'access_token': user.security.access_token, 'refresh_token': new_refresh_token, 'user': user}
+
+
+@router.post('/refresh-token/', response_model=schemas.AccessRefreshTokenSchema)
+def refresh_token(data: schemas.RefreshTokenSchema, session: Session = Depends(session_dependency)):
+    payload = utils.decode_token(data.refresh_token, options={'verify_exp': False})
+
+    user = session.get(UserProfile, payload.get('id'))
+    check_permissions(user, (permissions.UserActive(), permissions.UserRefreshTokenValid(data.refresh_token)))
+
+    refresh_tokens = session.query(UserRefreshTokens.refresh_token).filter(UserRefreshTokens.user_id == user.id).all()
+    session_index = refresh_tokens.index((data.refresh_token, ))
+    new_refresh_token = utils.create_token({'id': user.id})
+    user.refresh_tokens[session_index].refresh_token = new_refresh_token
+
+    if utils.token_expired(user.security.access_token):
+        user.security.access_token = utils.create_token({'id': user.id})
+
+    user.save()
+
+    return {'access_token': user.security.access_token, 'refresh_token': new_refresh_token}
