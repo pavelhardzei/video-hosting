@@ -25,6 +25,7 @@ def test_signup_flow(session):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == {'access_token': None,
+                               'refresh_token': None,
                                'user': {'id': ANY,
                                         'email': 'test@test.com',
                                         'username': 'test',
@@ -125,11 +126,14 @@ def test_email_confirmation_user_does_not_exist():
     assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.not_found}
 
 
-def test_signin(user, user_security):
+def test_signin(user, user_security, session):
     response = client.post('/api/v1/auth/signin/', data={'username': user.email,
                                                          'password': 'testing321'})
     assert response.status_code == status.HTTP_200_OK
+
+    session.refresh(user)
     assert response.json() == {'access_token': user.security.access_token,
+                               'refresh_token': user.refresh_tokens[-1].refresh_token,
                                'user': {'id': user.id,
                                         'email': user.email,
                                         'username': user.username,
@@ -137,12 +141,34 @@ def test_signin(user, user_security):
                                         'role': user.role}}
 
 
-def test_signin_with_existed_token(user, user_security, user_token):
+def test_signin_limited_refresh_tokens_number(user, user_security, session):
+    for _ in range(settings.refresh_tokens_number):
+        response = client.post('/api/v1/auth/signin/', data={'username': user.email,
+                                                             'password': 'testing321'})
+        assert response.status_code == status.HTTP_200_OK
+    assert len(user.refresh_tokens) == settings.refresh_tokens_number
+
+    user.refresh_tokens.sort(key=lambda obj: obj.id)
+    oldest = user.refresh_tokens[0]
+
+    response = client.post('/api/v1/auth/signin/', data={'username': user.email,
+                                                         'password': 'testing321'})
+    assert response.status_code == status.HTTP_200_OK
+
+    session.refresh(user)
+    assert len(user.refresh_tokens) == settings.refresh_tokens_number
+    assert oldest not in user.refresh_tokens
+
+
+def test_signin_with_existing_token(user, user_security, user_token, session):
     with freeze_time(datetime.utcnow() + timedelta(seconds=10)):
         response = client.post('/api/v1/auth/signin/', data={'username': user.email,
                                                              'password': 'testing321'})
         assert response.status_code == status.HTTP_200_OK
+
+        session.refresh(user)
         assert response.json() == {'access_token': user.security.access_token,
+                                   'refresh_token': user.refresh_tokens[-1].refresh_token,
                                    'user': {'id': user.id,
                                             'email': user.email,
                                             'username': user.username,
@@ -151,7 +177,7 @@ def test_signin_with_existed_token(user, user_security, user_token):
         assert user.security.access_token == user_token
 
 
-def test_signin_with_existed_expired_token(user, user_security, user_token, session):
+def test_signin_with_existing_expired_token(user, user_security, user_token, session):
     with freeze_time(datetime.utcnow() + timedelta(minutes=settings.token_expire_minutes, seconds=1)):
         response = client.post('/api/v1/auth/signin/', data={'username': user.email,
                                                              'password': 'testing321'})
@@ -159,6 +185,7 @@ def test_signin_with_existed_expired_token(user, user_security, user_token, sess
 
         session.refresh(user)
         assert response.json() == {'access_token': user.security.access_token,
+                                   'refresh_token': user.refresh_tokens[-1].refresh_token,
                                    'user': {'id': user.id,
                                             'email': user.email,
                                             'username': user.username,
@@ -187,29 +214,29 @@ def test_signin_user_is_inactive(user1):
     assert response.json() == {'detail': 'User is inactive', 'error_code': ErrorCodeEnum.user_inactive}
 
 
-def test_refresh_token(user, user_security, user_token):
-    with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
-        response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {'access_token': user.security.access_token}
-        assert user.security.access_token != user_token
-
-        response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
-
-
-def test_refresh_expired_token(user, user_security, user_token):
+def test_refresh_token(user, user_security, user_token, user_refresh_token):
     with freeze_time(datetime.utcnow() + timedelta(minutes=settings.token_expire_minutes, seconds=1)):
-        response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
+        response = client.post('/api/v1/auth/refresh-token/', json={'refresh_token': user_token})
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {'access_token': user.security.access_token}
+        assert response.json() == {'access_token': user.security.access_token,
+                                   'refresh_token': user_refresh_token.refresh_token}
         assert user.security.access_token != user_token
+        assert user_refresh_token.refresh_token != user_token
 
 
-def test_validate_refreshed_token(user, user_security, user_token):
+def test_refresh_token_not_expired(user, user_security, user_token, user_refresh_token):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
-        response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user_token})
+        response = client.post('/api/v1/auth/refresh-token/', json={'refresh_token': user_token})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {'access_token': user.security.access_token,
+                                   'refresh_token': user_refresh_token.refresh_token}
+        assert user.security.access_token == user_token
+        assert user_refresh_token.refresh_token != user_token
+
+
+def test_validate_refreshed_token(user, user_security, user_token, user_refresh_token):
+    with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
+        response = client.post('/api/v1/auth/refresh-token/', json={'refresh_token': user_refresh_token.refresh_token})
         response = client.get('/api/v1/users/me/',
                               headers={'Authorization': f'Bearer {user.security.access_token}'})
 
@@ -221,16 +248,17 @@ def test_validate_refreshed_token(user, user_security, user_token):
                                    'role': RoleEnum.viewer}
 
 
-def test_refresh_token_invalid_token(user, user_security):
+def test_refresh_token_invalid_token(user, user_security, user_refresh_token):
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         response = client.post('/api/v1/auth/refresh-token/',
-                               json={'access_token': utils.create_token({'id': user.id})})
+                               json={'refresh_token': utils.create_token({'id': user.id})})
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert response.json() == {'detail': 'Token is invalid or expired', 'error_code': ErrorCodeEnum.invalid_token}
+        assert response.json() == {'detail': 'Refresh token not found',
+                                   'error_code': ErrorCodeEnum.refresh_token_not_found}
 
 
-def test_refresh_token_user_is_inactive(user1_token):
-    response = client.post('/api/v1/auth/refresh-token/', json={'access_token': user1_token})
+def test_refresh_token_user_is_inactive(user1_refresh_token):
+    response = client.post('/api/v1/auth/refresh-token/', json={'refresh_token': user1_refresh_token.refresh_token})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {'detail': 'User is inactive', 'error_code': ErrorCodeEnum.user_inactive}
 
