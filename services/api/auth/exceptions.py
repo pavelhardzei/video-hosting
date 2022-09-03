@@ -38,6 +38,14 @@ class AccessTokenExpiredException(HTTPExceptionWithCode):
         super().__init__(status_code, error_code, detail, headers)
 
 
+class RefreshTokenNotFoundException(HTTPExceptionWithCode):
+    def __init__(self, status_code: int = status.HTTP_401_UNAUTHORIZED,
+                 error_code: ErrorCodeEnum = ErrorCodeEnum.refresh_token_not_found,
+                 detail: Any = 'Refresh token not found',
+                 headers: Optional[Dict[str, Any]] = None):
+        super().__init__(status_code, error_code, detail, headers)
+
+
 class UserInactiveException(HTTPExceptionWithCode):
     def __init__(self, status_code: int = status.HTTP_401_UNAUTHORIZED,
                  error_code: ErrorCodeEnum = ErrorCodeEnum.user_inactive,
