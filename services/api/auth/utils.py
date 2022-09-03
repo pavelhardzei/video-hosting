@@ -12,11 +12,11 @@ from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
-def create_token(data: dict, expire_minutes: Optional[int] = None) -> str:
-    token_expire_minutes = expire_minutes if expire_minutes else settings.token_expire_minutes
-
+def create_token(data: dict, token_expire_minutes: Optional[int] = settings.token_expire_minutes) -> str:
     to_encode = data.copy()
-    to_encode.update({'exp': datetime.utcnow() + timedelta(minutes=token_expire_minutes)})
+    if token_expire_minutes:
+        to_encode.update({'exp': datetime.utcnow() + timedelta(minutes=token_expire_minutes)})
+
     encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
     return encoded_jwt
