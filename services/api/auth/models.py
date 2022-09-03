@@ -21,6 +21,7 @@ class UserProfile(Base, SaveDBMixin, DeleteDBMixin):
 
     security = relationship('UserSecurity', back_populates='user', lazy='selectin',
                             uselist=False, cascade='all, delete')
+    refresh_tokens = relationship('UserRefreshTokens', back_populates='user', cascade='all, delete')
 
     def set_password(self, plain_password: str) -> None:
         self.password = utils.pwd_context.hash(plain_password)
@@ -55,3 +56,16 @@ class UserSecurity(Base, SaveDBMixin, DeleteDBMixin):
 
     def __repr__(self):
         return f'UserSecurity(id={self.id})'
+
+
+class UserRefreshTokens(Base, SaveDBMixin, DeleteDBMixin):
+    __tablename__ = 'user_refresh_tokens'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user_profile.id', ondelete='CASCADE'))
+    refresh_token = Column(String(150))
+
+    user = relationship('UserProfile', back_populates='refresh_tokens')
+
+    def __repr__(self):
+        return f'UserRefreshTokens(id={self.id}, user_id={self.user_id})'
