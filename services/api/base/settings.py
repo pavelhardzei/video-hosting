@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     algorithm: str = 'HS256'
     token_expire_minutes: int = 30
     email_resend_timeout_seconds = 30
+    refresh_tokens_number = 6
 
     class Config:
         env_file_encoding = 'utf-8'

@@ -1,6 +1,6 @@
 import factory
 from auth import utils
-from auth.models import UserProfile, UserSecurity
+from auth.models import UserProfile, UserRefreshTokens, UserSecurity
 from auth.schemas.enums import RoleEnum
 from faker import Faker
 
@@ -27,5 +27,17 @@ class UserSecurityFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     access_token = None
     email_sent_time = None
+
+    user = factory.SubFactory(UserProfileFactory)
+
+
+class UserRefreshTokensFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = UserRefreshTokens
+        sqlalchemy_session_persistence = 'commit'
+
+    id = factory.Sequence(lambda pk: pk)
+    user_id = None
+    refresh_token = None
 
     user = factory.SubFactory(UserProfileFactory)

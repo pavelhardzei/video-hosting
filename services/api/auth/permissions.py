@@ -37,3 +37,12 @@ class UserSecondaryTokenValid(BasePermission):
     def check_object_permission(self, obj: UserProfile) -> None:
         if not obj.security.check_secondary_token(self.token):
             raise exceptions.InvalidTokenException()
+
+
+class UserRefreshTokenValid(BasePermission):
+    def __init__(self, token: str):
+        self.token = token
+
+    def check_object_permission(self, obj: UserProfile) -> None:
+        if self.token not in [item.refresh_token for item in obj.refresh_tokens]:
+            raise exceptions.RefreshTokenNotFoundException()

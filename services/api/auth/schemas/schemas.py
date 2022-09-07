@@ -31,12 +31,22 @@ class UserPasswordUpdateSchema(BaseModel):
     token: str
 
 
+class RefreshTokenSchema(BaseModel):
+    refresh_token: str
+
+
 class AccessTokenSchema(BaseModel):
     access_token: str
 
 
+class AccessRefreshTokenSchema(AccessTokenSchema, RefreshTokenSchema):
+    access_token: str
+    refresh_token: str
+
+
 class UserTokenSchema(BaseModel):
     access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
     user: UserProfileSchema
 
 
