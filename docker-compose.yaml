@@ -15,23 +15,23 @@ services:
       interval: 1s
       timeout: 5s
       retries: 10
-  api:
-    build: ./services/api/
+  auth:
+    build: ./services/auth/
     volumes:
-      - ./services/api/:/opt/
+      - ./services/auth/:/opt/
     entrypoint: uvicorn base.main:app --host 0.0.0.0 --port 8001 --reload
     env_file:
-      - .api.env
+      - .auth.env
     depends_on:
       - db
       - migrations
   migrations:
-    build: ./services/api/
+    build: ./services/auth/
     volumes:
-      - ./services/api/:/opt/
+      - ./services/auth/:/opt/
     entrypoint: ./migrationsscript.sh
     env_file:
-      - .api.env
+      - .auth.env
     depends_on:
       db:
         condition: service_healthy
@@ -40,4 +40,4 @@ services:
     ports:
       - "8000:80"
     depends_on:
-      - api
+      - auth

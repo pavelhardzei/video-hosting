@@ -7,8 +7,7 @@ register(UserProfileFactory, 'user1')
 
 register(UserSecurityFactory, 'user1_security', access_token=LazyFixture('user1_token'), user=LazyFixture('user1'))
 
-register(UserRefreshTokensFactory, 'user1_refresh_token', refresh_token=LazyFixture('user1_token'),
-         user=LazyFixture('user1'))
+register(UserRefreshTokensFactory, 'user1_refresh_token', user=LazyFixture('user1'))
 
 
 @pytest.fixture

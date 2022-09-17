@@ -13,7 +13,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/signin/')
 def current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(session_dependency)) -> UserProfile:
     payload = utils.decode_access_token(token)
 
-    user = session.query(UserProfile).filter(UserProfile.id == payload.get('id')).first()
+    user = session.get(UserProfile, payload.get('id'))
     check_permissions(user, (UserActive(), UserAccessTokenValid(token)))
 
     return user

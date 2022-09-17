@@ -13,8 +13,7 @@ register(UserProfileFactory, 'user', email='test@test.com', username='test', is_
 
 register(UserSecurityFactory, 'user_security', access_token=LazyFixture('user_token'), user=LazyFixture('user'))
 
-register(UserRefreshTokensFactory, 'user_refresh_token', refresh_token=LazyFixture('user_token'),
-         user=LazyFixture('user'))
+register(UserRefreshTokensFactory, 'user_refresh_token', user=LazyFixture('user'))
 
 
 @pytest.fixture

@@ -41,3 +41,7 @@ class UserRefreshTokensFactory(factory.alchemy.SQLAlchemyModelFactory):
     refresh_token = None
 
     user = factory.SubFactory(UserProfileFactory)
+
+    @factory.post_generation
+    def set_refresh_token(self, create, value, **kwargs):
+        self.refresh_token = utils.create_token({'id': self.id, 'user_id': self.user_id})

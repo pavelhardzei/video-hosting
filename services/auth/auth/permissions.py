@@ -3,6 +3,15 @@ from auth.models import UserProfile
 from base.permissions import BasePermission
 
 
+class UserCorrectCredentials(BasePermission):
+    def __init__(self, password):
+        self.password = password
+
+    def check_object_permission(self, obj: UserProfile) -> None:
+        if not obj.check_password(self.password):
+            raise exceptions.InvalidCredentialsException()
+
+
 class UserActive(BasePermission):
     def check_object_permission(self, obj: UserProfile) -> None:
         if not obj.is_active:

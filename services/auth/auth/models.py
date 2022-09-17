@@ -29,6 +29,18 @@ class UserProfile(Base, SaveDBMixin, DeleteDBMixin):
     def check_password(self, plain_password: str) -> bool:
         return utils.pwd_context.verify(plain_password, self.password)
 
+    def create_refresh_token(self) -> str:
+        if len(self.refresh_tokens) >= settings.refresh_tokens_number:
+            self.refresh_tokens.sort(key=lambda obj: -obj.id)
+            oldest = self.refresh_tokens.pop()
+            oldest.delete()
+
+        obj = UserRefreshTokens(user=self)
+        obj.save()
+        obj.refresh_token = utils.create_token({'id': obj.id, 'user_id': self.id})
+
+        return obj.refresh_token
+
     def __repr__(self):
         return f'UserProfile(id={self.id}, email={self.email}, is_active={self.is_active})'
 
@@ -50,6 +62,10 @@ class UserSecurity(Base, SaveDBMixin, DeleteDBMixin):
 
     def check_access_token(self, access_token: str) -> bool:
         return self.access_token == access_token
+
+    def update_access_token(self) -> None:
+        if self.access_token is None or utils.token_expired(self.access_token):
+            self.access_token = utils.create_token({'id': self.id})
 
     def check_secondary_token(self, secondary_token: str) -> bool:
         return self.secondary_token == secondary_token
