@@ -1,13 +1,14 @@
 version: "3.9"
 
 volumes:
-  postgres_data:
+  auth_data:
+  content_data:
 
 services:
-  db:
+  auth_db:
     image: postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - auth_data:/var/lib/postgresql/data
     env_file:
       - .db.env
     healthcheck:
@@ -19,13 +20,13 @@ services:
     build: ./services/auth/
     volumes:
       - ./services/auth/:/opt/
-    entrypoint: uvicorn base.main:app --host 0.0.0.0 --port 8001 --reload
+    entrypoint: uvicorn base.main:app --root-path /auth --host 0.0.0.0 --port 8001 --reload
     env_file:
       - .auth.env
     depends_on:
-      - db
-      - migrations
-  migrations:
+      - auth_db
+      - auth_migrations
+  auth_migrations:
     build: ./services/auth/
     volumes:
       - ./services/auth/:/opt/
@@ -33,7 +34,38 @@ services:
     env_file:
       - .auth.env
     depends_on:
-      db:
+      auth_db:
+        condition: service_healthy
+  content_db:
+    image: postgres
+    volumes:
+      - content_data:/var/lib/postgresql/data
+    env_file:
+      - .db.env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+  content:
+    build: ./services/content/
+    volumes:
+      - ./services/content/:/opt/
+    entrypoint: uvicorn base.main:app --root-path /content --host 0.0.0.0 --port 8002 --reload
+    env_file:
+      - .content.env
+    depends_on:
+      - content_db
+      - content_migrations
+  content_migrations:
+    build: ./services/content/
+    volumes:
+      - ./services/content/:/opt/
+    entrypoint: ./migrationsscript.sh
+    env_file:
+      - .content.env
+    depends_on:
+      content_db:
         condition: service_healthy
   nginx:
     build: ./services/nginx/
@@ -41,3 +73,4 @@ services:
       - "8000:80"
     depends_on:
       - auth
+      - content
