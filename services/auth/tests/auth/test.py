@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import ANY
 
 from auth import utils
-from auth.models import UserProfile
+from auth.database.models import UserProfile
 from auth.schemas.enums import ConfirmationTypeEnum, RoleEnum
 from auth.utils import fm
 from base.schemas.enums import ErrorCodeEnum

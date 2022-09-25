@@ -1,5 +1,5 @@
 from auth import utils
-from auth.models import UserProfile
+from auth.database.models import UserProfile
 from auth.permissions import UserAccessTokenValid, UserActive
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions

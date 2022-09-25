@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from alembic import context
 from base.database.config import Base
 from base.settings import settings
-from content import models  # noqa: F401
+from content.database import models  # noqa: F401
 from sqlalchemy import engine_from_config, pool
 
 config = context.config

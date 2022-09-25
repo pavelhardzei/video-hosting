@@ -1,6 +1,6 @@
 import factory
 from auth import utils
-from auth.models import UserProfile, UserRefreshTokens, UserSecurity
+from auth.database.models import UserProfile, UserRefreshTokens, UserSecurity
 from auth.schemas.enums import RoleEnum
 from faker import Faker
 

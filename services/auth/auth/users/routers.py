@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from auth import permissions, utils
+from auth.database.models import UserProfile
 from auth.dependencies import current_user
-from auth.models import UserProfile
 from auth.schemas import schemas
 from base.database import crud
 from base.permissions import check_permissions

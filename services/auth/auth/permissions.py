@@ -1,5 +1,5 @@
 from auth import exceptions
-from auth.models import UserProfile
+from auth.database.models import UserProfile
 from base.permissions import BasePermission
 
 

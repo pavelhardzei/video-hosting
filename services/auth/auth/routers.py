@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from auth import permissions, utils
-from auth.models import UserProfile, UserRefreshTokens, UserSecurity
+from auth.database.models import UserProfile, UserRefreshTokens, UserSecurity
 from auth.schemas import schemas
 from auth.schemas.enums import ConfirmationTypeEnum
 from base.database.dependencies import session_dependency

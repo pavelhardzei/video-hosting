@@ -25,3 +25,7 @@ class DeleteDBMixin(BaseDBMixin):
     def delete(self) -> None:
         self.session_class.delete(self)
         self.session_class.flush()
+
+
+class SaveDeleteDBMixin(SaveDBMixin, DeleteDBMixin):
+    pass
