@@ -37,7 +37,6 @@ class UserRefreshTokensFactory(factory.alchemy.SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = 'commit'
 
     id = factory.Sequence(lambda pk: pk)
-    user_id = None
     refresh_token = None
 
     user = factory.SubFactory(UserProfileFactory)

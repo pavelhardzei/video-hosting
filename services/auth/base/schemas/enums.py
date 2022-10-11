@@ -4,7 +4,7 @@ import enum
 class ErrorCodeEnum(str, enum.Enum):
     base_error = 'BaseError'
     invalid_credentials = 'InvalidCredentials'
-    not_found = 'NotFound'
+    user_not_found = 'UserNotFound'
     already_exists = 'AlreadyExists'
     invalid_token = 'InvalidToken'
     token_expired = 'TokenExpired'

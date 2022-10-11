@@ -7,7 +7,7 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/signin/')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/api/v1/auth/signin/')
 
 
 def current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(session_dependency)) -> UserProfile:

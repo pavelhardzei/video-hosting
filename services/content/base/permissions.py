@@ -12,7 +12,7 @@ class BasePermission(ABC):
 
 def check_permissions(obj: Any, permissions: List[BasePermission]) -> None:
     if obj is None:
-        raise exceptions.UserNotFoundException()
+        raise exceptions.NotFoundException()
 
     for permission in permissions:
         permission.check_object_permission(obj)

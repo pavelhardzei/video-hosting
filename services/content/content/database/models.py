@@ -32,10 +32,10 @@ class Content(Base, SaveDeleteDBMixin):
     kinopoisk_rating = Column(Float)
     kinopoisk_vote_count = Column(Integer)
 
-    countries = relationship('ContentCountries', back_populates='content')
-    genres = relationship('ContentGenres', back_populates='content')
-    actors = relationship('ContentActors', back_populates='content')
-    directors = relationship('ContentDirectors', back_populates='content')
+    countries = relationship('ContentCountries', back_populates='content', lazy='subquery')
+    genres = relationship('ContentGenres', back_populates='content', lazy='subquery')
+    actors = relationship('ContentActors', back_populates='content', lazy='subquery')
+    directors = relationship('ContentDirectors', back_populates='content', lazy='subquery')
 
     def __repr__(self):
         return f'Content(id={self.id})'
@@ -43,14 +43,14 @@ class Content(Base, SaveDeleteDBMixin):
 
 class Movie(Base, SaveDeleteDBMixin, ContentMixin, MediaMixin):
     def __repr__(self):
-        return f'Movie(id={self.id})'
+        return f'Movie(id={self.id}, content_id={self.content_id}, media_id={self.media_id})'
 
 
 class Serial(Base, SaveDeleteDBMixin, ContentMixin):
     seasons = relationship('Season', back_populates='serial')
 
     def __repr__(self):
-        return f'Serial(id={self.id})'
+        return f'Serial(id={self.id}, content_id={self.content_id})'
 
 
 class Season(Base, SaveDeleteDBMixin, ContentMixin):
@@ -60,7 +60,7 @@ class Season(Base, SaveDeleteDBMixin, ContentMixin):
     episodes = relationship('Episode', back_populates='season')
 
     def __repr__(self):
-        return f'Season(id={self.id})'
+        return f'Season(id={self.id}, serial_id={self.serial_id}, content_id={self.content_id})'
 
 
 class Episode(Base, SaveDeleteDBMixin, ContentMixin, MediaMixin):
@@ -69,7 +69,7 @@ class Episode(Base, SaveDeleteDBMixin, ContentMixin, MediaMixin):
     season = relationship('Season', back_populates='episodes')
 
     def __repr__(self):
-        return f'Episode(id={self.id})'
+        return f'Episode(season_id={self.season_id}, content_id={self.content_id}, media_id={self.media_id})'
 
 
 class Country(Base, SaveDeleteDBMixin):
@@ -77,38 +77,62 @@ class Country(Base, SaveDeleteDBMixin):
     abbr = Column(String(5), nullable=False)
     code = Column(Integer)
 
+    def __repr__(self):
+        return f'Country(id={self.id}, name={self.name}, abbr={self.abbr})'
+
 
 class ContentCountries(Base, SaveDeleteDBMixin, ContentMixin):
     country_id = Column(Integer, ForeignKey('country.id', ondelete='CASCADE'))
 
-    country = relationship('Country')
+    country = relationship('Country', lazy='joined')
+
+    def __repr__(self):
+        return f'ContentCountries(id={self.id}, country_id={self.country_id}, content_id={self.content_id})'
 
 
 class Genre(Base, SaveDeleteDBMixin):
     name = Column(String(50), nullable=False)
 
+    def __repr__(self):
+        return f'Genre(id={self.id}, name={self.name})'
+
 
 class ContentGenres(Base, SaveDeleteDBMixin, ContentMixin):
     genre_id = Column(Integer, ForeignKey('genre.id', ondelete='CASCADE'))
 
-    genre = relationship('Genre')
+    genre = relationship('Genre', lazy='joined')
+
+    def __repr__(self):
+        return f'ContentGenres(id={self.id}, genre_id={self.genre_id}, content_id={self.content_id})'
 
 
 class Actor(Base, SaveDeleteDBMixin):
     name = Column(String(50), nullable=False)
 
+    def __repr__(self):
+        return f'Actor(id={self.id}, name={self.name})'
+
 
 class ContentActors(Base, SaveDeleteDBMixin, ContentMixin):
     actor_id = Column(Integer, ForeignKey('actor.id', ondelete='CASCADE'))
 
-    actor = relationship('Actor')
+    actor = relationship('Actor', lazy='joined')
+
+    def __repr__(self):
+        return f'ContentActors(id={self.id}, actor_id={self.actor_id}, content_id={self.content_id})'
 
 
 class Director(Base, SaveDeleteDBMixin):
     name = Column(String(50), nullable=False)
 
+    def __repr__(self):
+        return f'Director(id={self.id}, name={self.name})'
+
 
 class ContentDirectors(Base, SaveDeleteDBMixin, ContentMixin):
     director_id = Column(Integer, ForeignKey('director.id', ondelete='CASCADE'))
 
-    director = relationship('Director')
+    director = relationship('Director', lazy='joined')
+
+    def __repr__(self):
+        return f'ContentDirectors(id={self.id}, director_id={self.director_id}, content_id={self.content_id})'

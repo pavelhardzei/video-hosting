@@ -122,8 +122,8 @@ def test_email_confirmation_user_does_not_exist():
     response = client.post('/api/v1/auth/send-email-confirmation/',
                            json={'email': 'fake@example.com', 'email_type': ConfirmationTypeEnum.verification})
 
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.not_found}
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.user_not_found}
 
 
 def test_signin(user, user_security, session):
@@ -197,8 +197,8 @@ def test_signin_with_existing_expired_token(user, user_security, user_token, ses
 def test_signin_invalid_credentials(user):
     response = client.post('/api/v1/auth/signin/', data={'username': 'fake@fake.com',
                                                          'password': 'testing321'})
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.not_found}
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.user_not_found}
 
     response = client.post('/api/v1/auth/signin/', data={'username': user.email,
                                                          'password': 'fake_password'})
@@ -305,8 +305,8 @@ def test_get_current_user_invalid_token(user, user_security, user_token):
     assert response.json() == {'detail': 'Signature verification failed.', 'error_code': ErrorCodeEnum.invalid_token}
 
     response = client.get('/api/v1/users/me/', headers={'Authorization': f"Bearer {utils.create_token({'id': 0})}"})
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.not_found}
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.user_not_found}
 
     with freeze_time(datetime.utcnow() + timedelta(seconds=1)):
         invalid_token = utils.create_token({'id': user.id})

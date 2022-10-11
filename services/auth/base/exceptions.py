@@ -13,9 +13,9 @@ class HTTPExceptionWithCode(HTTPException):
         self.error_code = error_code
 
 
-class NotFoundException(HTTPExceptionWithCode):
-    def __init__(self, status_code: int = status.HTTP_404_NOT_FOUND,
-                 error_code: ErrorCodeEnum = ErrorCodeEnum.not_found,
+class UserNotFoundException(HTTPExceptionWithCode):
+    def __init__(self, status_code: int = status.HTTP_401_UNAUTHORIZED,
+                 error_code: ErrorCodeEnum = ErrorCodeEnum.user_not_found,
                  detail: Any = 'Not found',
                  headers: Optional[Dict[str, Any]] = None):
         super().__init__(status_code, error_code, detail, headers)

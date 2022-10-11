@@ -2,6 +2,6 @@ import enum
 
 
 class ErrorCodeEnum(str, enum.Enum):
-    base_error = 'BaseError'
     not_found = 'NotFound'
+    base_error = 'BaseError'
     already_exists = 'AlreadyExists'

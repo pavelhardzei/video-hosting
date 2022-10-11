@@ -19,4 +19,4 @@ class MediaMixin:
 
     @declared_attr
     def media(cls):
-        return relationship('Media')
+        return relationship('Media', lazy='joined')

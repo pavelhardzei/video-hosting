@@ -14,7 +14,7 @@ class HTTPExceptionWithCode(HTTPException):
 
 
 class NotFoundException(HTTPExceptionWithCode):
-    def __init__(self, status_code: int = status.HTTP_404_NOT_FOUND,
+    def __init__(self, status_code: int = status.HTTP_400_BAD_REQUEST,
                  error_code: ErrorCodeEnum = ErrorCodeEnum.not_found,
                  detail: Any = 'Not found',
                  headers: Optional[Dict[str, Any]] = None):
