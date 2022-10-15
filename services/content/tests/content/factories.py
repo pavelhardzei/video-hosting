@@ -37,19 +37,23 @@ class ContentFactory(factory.alchemy.SQLAlchemyModelFactory):
     kinopoisk_vote_count = fake.pyint(max_value=1000)
 
     @factory.post_generation
-    def countries(self, create, value=0, **kwargs):
+    def countries(self, create, value, **kwargs):
+        value = value if value else 0
         ContentCountriesFactory.create_batch(size=value, country=CountryFactory(), content=self, **kwargs)
 
     @factory.post_generation
-    def genres(self, create, value=0, **kwargs):
+    def genres(self, create, value, **kwargs):
+        value = value if value else 0
         ContentGenresFactory.create_batch(size=value, genre=GenreFactory(), content=self, **kwargs)
 
     @factory.post_generation
-    def actors(self, create, value=0, **kwargs):
+    def actors(self, create, value, **kwargs):
+        value = value if value else 0
         ContentActorsFactory.create_batch(size=value, actor=ActorFactory(), content=self, **kwargs)
 
     @factory.post_generation
-    def directors(self, create, value=0, **kwargs):
+    def directors(self, create, value, **kwargs):
+        value = value if value else 0
         ContentDirectorsFactory.create_batch(size=value, director=DirectorFactory(), content=self, **kwargs)
 
 
@@ -58,6 +62,55 @@ class MovieFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = models.Movie
         sqlalchemy_session_persistence = 'commit'
 
+    content = factory.SubFactory(ContentFactory)
+    media = factory.SubFactory(MediaFactory)
+
+
+class SerialFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = models.Serial
+        sqlalchemy_session_persistence = 'commit'
+
+    content = factory.SubFactory(ContentFactory)
+
+    @factory.post_generation
+    def seasons(self, create, value, **kwargs):
+        value = value if value else 0
+        episodes = kwargs.pop('episodes', 1)
+        SeasonFactory.create_batch(
+            size=value,
+            serial=self,
+            content=ContentFactory(countries=1, genres=1, actors=1, directors=1),
+            episodes=episodes,
+            **kwargs
+        )
+
+
+class SeasonFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = models.Season
+        sqlalchemy_session_persistence = 'commit'
+
+    serial = factory.SubFactory(SerialFactory)
+    content = factory.SubFactory(ContentFactory)
+
+    @factory.post_generation
+    def episodes(self, create, value, **kwargs):
+        value = value if value else 0
+        EpisodeFactory.create_batch(
+            size=value,
+            season=self,
+            content=ContentFactory(countries=1, genres=1, actors=1, directors=1),
+            **kwargs
+        )
+
+
+class EpisodeFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = models.Episode
+        sqlalchemy_session_persistence = 'commit'
+
+    season = factory.SubFactory(SeasonFactory)
     content = factory.SubFactory(ContentFactory)
     media = factory.SubFactory(MediaFactory)
 

@@ -9,7 +9,7 @@ class ContentMixin:
 
     @declared_attr
     def content(cls):
-        return relationship('Content')
+        return relationship('Content', lazy='joined')
 
 
 class MediaMixin:

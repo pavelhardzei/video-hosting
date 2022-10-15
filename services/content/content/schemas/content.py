@@ -52,3 +52,39 @@ class MovieSchema(OrmBaseMixin, FlattenMixin, MovieBaseSchema):
 
 class MovieListSchema(BaseModel):
     __root__: List[MovieSchema]
+
+
+class EpisodeBaseSchema(BaseModel):
+    content_type: MediaContentTypeEnum = MediaContentTypeEnum.episode
+
+
+class EpisodeSchema(OrmBaseMixin, FlattenMixin, EpisodeBaseSchema):
+    id: int
+    content: ContentSchema = Field(flatten=True)
+    media: MediaSchema = Field(flatten=True)
+
+
+class SeasonBaseSchema(BaseModel):
+    content_type: MediaContentTypeEnum = MediaContentTypeEnum.season
+
+
+class SeasonSchema(OrmBaseMixin, FlattenMixin, SeasonBaseSchema):
+    id: int
+    content: ContentSchema = Field(flatten=True)
+
+    episodes: List[EpisodeSchema]
+
+
+class SerialBaseSchema(BaseModel):
+    content_type: MediaContentTypeEnum = MediaContentTypeEnum.serial
+
+
+class SerialSchema(OrmBaseMixin, FlattenMixin, SerialBaseSchema):
+    id: int
+    content: ContentSchema = Field(flatten=True)
+
+    seasons: List[SeasonSchema]
+
+
+class SerialListSchema(BaseModel):
+    __root__: List[SerialSchema]
