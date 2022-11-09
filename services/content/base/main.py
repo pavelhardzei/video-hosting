@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from users.routers import router as user_router
 
 app = FastAPI()
 
@@ -32,6 +33,7 @@ router = APIRouter(
 )
 
 router.include_router(content_router)
+router.include_router(user_router)
 
 app.include_router(router)
 

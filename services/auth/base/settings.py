@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     email_resend_timeout_seconds = 30
     refresh_tokens_number = 6
 
+    grpc_server: str
+
     class Config:
         env_file_encoding = 'utf-8'
 

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package authorization;
+
+service Authorization {
+	rpc authorize (AuthorizationRequest) returns (AuthorizationResponse);
+}
+
+message AuthorizationRequest {
+  string access_token = 1;
+}
+
+message AuthorizationResponse {
+  optional uint64 id = 1;
+}

@@ -36,6 +36,15 @@ services:
     depends_on:
       auth_db:
         condition: service_healthy
+  auth_grpc:
+    build: ./services/auth/
+    volumes:
+      - ./services/auth/:/opt/
+    entrypoint: python -m grpc_module.main
+    env_file:
+      - .auth.env
+    depends_on:
+      - auth
   content_db:
     image: postgres
     volumes:
