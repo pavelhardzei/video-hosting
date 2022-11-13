@@ -354,7 +354,6 @@ def test_delete_current_user_flow(user, user_token, user_security, session):
                              headers={'Authorization': f'Bearer {user_token}'})
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert response.json() is None
     assert session.query(UserProfile).count() == 0
 
 

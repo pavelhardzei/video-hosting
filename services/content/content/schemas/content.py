@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import List, Optional
 
+from base.mixins.schemas import FlattenMixin, OrmBaseMixin
 from content.schemas.details import (ContentActorsProxySchema, ContentCountriesProxySchema, ContentDirectorsProxySchema,
                                      ContentGenresProxySchema)
 from content.schemas.enums import MediaContentTypeEnum
-from content.schemas.mixins import FlattenMixin, OrmBaseMixin
 from pydantic import BaseModel, Field
 
 

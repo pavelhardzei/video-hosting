@@ -5,7 +5,8 @@ from base.database.mixins import BaseDBMixin
 from base.main import app
 from sqlalchemy.orm import scoped_session, sessionmaker
 from tests import test_session_dependency
-from tests.content import factories
+from tests.content import factories as content_factories
+from tests.users import factories as users_factories
 
 
 @pytest.fixture(scope='module')
@@ -40,17 +41,19 @@ def session(connection):
 
 
 def factories_attach_session(session):
-    factories.MediaFactory._meta.sqlalchemy_session = session
-    factories.ContentFactory._meta.sqlalchemy_session = session
-    factories.MovieFactory._meta.sqlalchemy_session = session
-    factories.SerialFactory._meta.sqlalchemy_session = session
-    factories.SeasonFactory._meta.sqlalchemy_session = session
-    factories.EpisodeFactory._meta.sqlalchemy_session = session
-    factories.CountryFactory._meta.sqlalchemy_session = session
-    factories.GenreFactory._meta.sqlalchemy_session = session
-    factories.ActorFactory._meta.sqlalchemy_session = session
-    factories.DirectorFactory._meta.sqlalchemy_session = session
-    factories.ContentCountriesFactory._meta.sqlalchemy_session = session
-    factories.ContentGenresFactory._meta.sqlalchemy_session = session
-    factories.ContentActorsFactory._meta.sqlalchemy_session = session
-    factories.ContentDirectorsFactory._meta.sqlalchemy_session = session
+    content_factories.MediaFactory._meta.sqlalchemy_session = session
+    content_factories.ContentFactory._meta.sqlalchemy_session = session
+    content_factories.MovieFactory._meta.sqlalchemy_session = session
+    content_factories.SerialFactory._meta.sqlalchemy_session = session
+    content_factories.SeasonFactory._meta.sqlalchemy_session = session
+    content_factories.EpisodeFactory._meta.sqlalchemy_session = session
+    content_factories.CountryFactory._meta.sqlalchemy_session = session
+    content_factories.GenreFactory._meta.sqlalchemy_session = session
+    content_factories.ActorFactory._meta.sqlalchemy_session = session
+    content_factories.DirectorFactory._meta.sqlalchemy_session = session
+    content_factories.ContentCountriesFactory._meta.sqlalchemy_session = session
+    content_factories.ContentGenresFactory._meta.sqlalchemy_session = session
+    content_factories.ContentActorsFactory._meta.sqlalchemy_session = session
+    content_factories.ContentDirectorsFactory._meta.sqlalchemy_session = session
+
+    users_factories.UserLibraryFactory._meta.sqlalchemy_session = session

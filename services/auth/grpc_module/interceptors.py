@@ -12,5 +12,7 @@ class ExceptionIntercepter(ServerInterceptor):
                 ('status_code', f'{e.status_code}')
             ))
             context.set_details(e.detail)
+            raise
         except Exception as e:
             context.set_details(f'{e}')
+            raise

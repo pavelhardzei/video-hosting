@@ -3,7 +3,8 @@ from datetime import datetime
 from base.database.config import Base
 from base.database.mixins import SaveDeleteDBMixin
 from content.database.mixins import ContentMixin, MediaMixin
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
+from content.schemas.enums import MediaContentTypeEnum
+from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 
@@ -42,11 +43,15 @@ class Content(Base, SaveDeleteDBMixin):
 
 
 class Movie(Base, SaveDeleteDBMixin, ContentMixin, MediaMixin):
+    content_type = Column(Enum(MediaContentTypeEnum), default=MediaContentTypeEnum.movie)
+
     def __repr__(self):
         return f'Movie(id={self.id}, content_id={self.content_id}, media_id={self.media_id})'
 
 
 class Serial(Base, SaveDeleteDBMixin, ContentMixin):
+    content_type = Column(Enum(MediaContentTypeEnum), default=MediaContentTypeEnum.serial)
+
     seasons = relationship('Season', back_populates='serial', lazy='subquery')
 
     def __repr__(self):
@@ -54,6 +59,8 @@ class Serial(Base, SaveDeleteDBMixin, ContentMixin):
 
 
 class Season(Base, SaveDeleteDBMixin, ContentMixin):
+    content_type = Column(Enum(MediaContentTypeEnum), default=MediaContentTypeEnum.season)
+
     serial_id = Column(Integer, ForeignKey('serial.id', ondelete='CASCADE'))
 
     serial = relationship('Serial', back_populates='seasons')
@@ -64,6 +71,8 @@ class Season(Base, SaveDeleteDBMixin, ContentMixin):
 
 
 class Episode(Base, SaveDeleteDBMixin, ContentMixin, MediaMixin):
+    content_type = Column(Enum(MediaContentTypeEnum), default=MediaContentTypeEnum.episode)
+
     season_id = Column(Integer, ForeignKey('season.id', ondelete='CASCADE'))
 
     season = relationship('Season', back_populates='episodes')

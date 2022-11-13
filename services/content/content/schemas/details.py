@@ -1,4 +1,4 @@
-from content.schemas.mixins import FlattenMixin, OrmBaseMixin
+from base.mixins.schemas import FlattenMixin, OrmBaseMixin
 from pydantic import BaseModel, Field
 
 
