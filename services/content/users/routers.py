@@ -1,11 +1,13 @@
 from base.database import crud
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
+from base.utils.pagination import Params, paginate
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from users.database.models import UserLibrary
 from users.dependences import current_user_id
 from users.schemas import schemas
+from users.schemas.enums import LibraryTypeEnum
 
 router = APIRouter(
     prefix='/users/me',
@@ -13,11 +15,19 @@ router = APIRouter(
 )
 
 
-@router.get('/library/', response_model=schemas.UserLibraryListSchema)
-def get_library(user_id: int = Depends(current_user_id), session: Session = Depends(session_dependency)):
-    library = session.query(UserLibrary).filter(UserLibrary.user_id == user_id).all()
+@router.get('/library/{library_type}/', response_model=schemas.UserLibraryListSchema)
+def get_library(
+    library_type: LibraryTypeEnum,
+    params: Params = Depends(),
+    user_id: int = Depends(current_user_id),
+    session: Session = Depends(session_dependency)
+):
+    library = session.query(UserLibrary).filter(
+        UserLibrary.user_id == user_id,
+        UserLibrary.library_type == library_type
+    ).order_by(UserLibrary.id)
 
-    return library
+    return paginate(library, params)
 
 
 @router.post('/library/', response_model=schemas.UserLibrarySchema, status_code=status.HTTP_201_CREATED)

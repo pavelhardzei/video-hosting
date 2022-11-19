@@ -14,5 +14,5 @@ class UserLibraryFactory(factory.alchemy.SQLAlchemyModelFactory):
     id = factory.Sequence(lambda pk: pk)
     object = factory.SubFactory('tests.content.factories.MovieFactory')
     user_id = fake.pyint(min_value=1, max_value=100)
-    list_type = LibraryTypeEnum.favorite
+    library_type = LibraryTypeEnum.favorite
     offset = fake.pyint(min_value=0, max_value=100)

@@ -8,7 +8,7 @@ from users.schemas.enums import LibraryTypeEnum, ObjectTypeEnum
 
 
 class UserLibraryBaseSchema(BaseModel):
-    list_type: LibraryTypeEnum
+    library_type: LibraryTypeEnum
     offset: Optional[int] = None
 
 
