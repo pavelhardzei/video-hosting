@@ -10,8 +10,8 @@ from sqlalchemy.orm import relationship
 
 class Media(Base, SaveDeleteDBMixin):
     title = Column(String(50), nullable=False)
-    source = Column(String(100), nullable=False)
-    preview = Column(String(100))
+    source = Column(String(200), nullable=False)
+    preview = Column(String(200))
     duration = Column(Integer)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -21,12 +21,12 @@ class Media(Base, SaveDeleteDBMixin):
 
 class Content(Base, SaveDeleteDBMixin):
     title = Column(String(50), nullable=False)
-    description = Column(String(500), nullable=False)
+    description = Column(String(1000), nullable=False)
     year = Column(Integer, nullable=False)
     release_date = Column(DateTime)
     age_limit = Column(Integer, nullable=False)
-    poster = Column(String(100), nullable=False)
-    background = Column(String(100), nullable=False)
+    poster = Column(String(200), nullable=False)
+    background = Column(String(200), nullable=False)
 
     imdb_rating = Column(Float)
     imdb_vote_count = Column(Integer)

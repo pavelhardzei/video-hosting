@@ -1,3 +1,5 @@
+from typing import Optional
+
 from base.mixins.schemas import FlattenMixin, OrmBaseMixin
 from pydantic import BaseModel, Field
 
@@ -5,7 +7,7 @@ from pydantic import BaseModel, Field
 class CountryBaseSchema(BaseModel):
     name: str
     abbr: str
-    code: int
+    code: Optional[int]
 
 
 class CountrySchema(OrmBaseMixin, CountryBaseSchema):
