@@ -10,8 +10,8 @@ from pydantic import BaseModel, Field
 
 class MediaBaseSchema(BaseModel):
     source: str
-    preview: str
-    duration: int
+    preview: Optional[str]
+    duration: Optional[int]
 
 
 class MediaSchema(OrmBaseMixin, MediaBaseSchema):
