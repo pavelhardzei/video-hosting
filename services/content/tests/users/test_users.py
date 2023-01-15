@@ -1,5 +1,6 @@
 from unittest.mock import ANY, patch
 
+from admin.schemas.enums import RoleEnum
 from base.schemas.enums import ErrorCodeEnum
 from base.utils.consts import DATETIME_FMT
 from content.schemas.enums import MediaContentTypeEnum
@@ -8,10 +9,10 @@ from tests import client
 from tests.users.factories import UserLibraryFactory
 from tests.utils import count_queries
 from users.database.models import UserLibrary
-from users.schemas.enums import LibraryTypeEnum, ObjectTypeEnum
+from users.schemas.enums import LibraryTypeEnum, UserLibraryObjectEnum
 
 
-@patch('users.dependences.authorize', lambda *args, **kwargs: 1)
+@patch('base.utils.dependences.authorize', lambda *args, **kwargs: {'id': 1, 'role': RoleEnum.viewer})
 def test_get_library(user_library, *args):
     response = client.get(
         f'/api/v1/users/me/library/{user_library.library_type}/',
@@ -77,7 +78,7 @@ def test_get_library(user_library, *args):
     ]
 
 
-@patch('users.dependences.authorize', lambda *args, **kwargs: 1)
+@patch('base.utils.dependences.authorize', lambda *args, **kwargs: {'id': 1, 'role': RoleEnum.viewer})
 def test_get_library_count_queries(session, *args):
     UserLibraryFactory.create_batch(3, user_id=1, library_type=LibraryTypeEnum.watch_later)
 
@@ -90,13 +91,13 @@ def test_get_library_count_queries(session, *args):
     assert len(queries) == 16
 
 
-@patch('users.dependences.authorize', lambda *args, **kwargs: 1)
+@patch('base.utils.dependences.authorize', lambda *args, **kwargs: {'id': 1, 'role': RoleEnum.viewer})
 def test_create_library(movie, session, *args):
     assert session.query(UserLibrary).count() == 0
 
     request = {
         'library_type': LibraryTypeEnum.favorite,
-        'object_type': ObjectTypeEnum.movie,
+        'object_type': UserLibraryObjectEnum.movie,
         'object_id': movie.id
     }
 
@@ -107,7 +108,7 @@ def test_create_library(movie, session, *args):
     assert session.query(UserLibrary).count() == 1
 
 
-@patch('users.dependences.authorize', lambda *args, **kwargs: 1)
+@patch('base.utils.dependences.authorize', lambda *args, **kwargs: {'id': 1, 'role': RoleEnum.viewer})
 def test_patch_library(user_library, *args):
     request = {'offset': 30}
     response = client.patch(f'/api/v1/users/me/library/{user_library.id}/', json=request,
@@ -117,7 +118,7 @@ def test_patch_library(user_library, *args):
     assert response.json()['offset'] == 30
 
 
-@patch('users.dependences.authorize', lambda *args, **kwargs: 0)
+@patch('base.utils.dependences.authorize', lambda *args, **kwargs: {'id': 0, 'role': RoleEnum.viewer})
 def test_patch_library_not_found(user_library, *args):
     request = {'offset': 30}
     response = client.patch(f'/api/v1/users/me/library/{user_library.id}/', json=request,
@@ -127,14 +128,14 @@ def test_patch_library_not_found(user_library, *args):
     assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.not_found}
 
 
-@patch('users.dependences.authorize', lambda *args, **kwargs: 1)
+@patch('base.utils.dependences.authorize', lambda *args, **kwargs: {'id': 1, 'role': RoleEnum.viewer})
 def test_delete_library(user_library, *args):
     response = client.delete(f'/api/v1/users/me/library/{user_library.id}/', headers={'Authorization': 'Bearer Token'})
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
-@patch('users.dependences.authorize', lambda *args, **kwargs: 0)
+@patch('base.utils.dependences.authorize', lambda *args, **kwargs: {'id': 0, 'role': RoleEnum.viewer})
 def test_delete_library_not_found(user_library, *args):
     response = client.delete(f'/api/v1/users/me/library/{user_library.id}/', headers={'Authorization': 'Bearer Token'})
 
@@ -142,7 +143,7 @@ def test_delete_library_not_found(user_library, *args):
     assert response.json() == {'detail': 'Not found', 'error_code': ErrorCodeEnum.not_found}
 
 
-@patch('users.dependences.authorize', lambda *args, **kwargs: 1)
+@patch('base.utils.dependences.authorize', lambda *args, **kwargs: {'id': 1, 'role': RoleEnum.viewer})
 def test_user_library_pagination():
     UserLibraryFactory.create_batch(10, user_id=1, library_type=LibraryTypeEnum.watch_later)
 

@@ -3,9 +3,10 @@ from datetime import datetime
 from base.database.config import Base
 from base.database.mixins import SaveDeleteDBMixin
 from content.database.mixins import ContentMixin, MediaMixin
-from content.schemas.enums import MediaContentTypeEnum
-from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String
+from content.schemas.enums import MediaContentTypeEnum, PlaylistItemObjectEnum, PlaylistTypeEnum
+from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
+from sqlalchemy_utils import generic_relationship
 
 
 class Media(Base, SaveDeleteDBMixin):
@@ -52,7 +53,7 @@ class Movie(Base, SaveDeleteDBMixin, ContentMixin, MediaMixin):
 class Serial(Base, SaveDeleteDBMixin, ContentMixin):
     content_type = Column(Enum(MediaContentTypeEnum), default=MediaContentTypeEnum.serial)
 
-    seasons = relationship('Season', back_populates='serial', lazy='subquery')
+    seasons = relationship('Season', back_populates='serial')
 
     def __repr__(self):
         return f'Serial(id={self.id}, content_id={self.content_id})'
@@ -149,3 +150,27 @@ class ContentDirectors(Base, SaveDeleteDBMixin, ContentMixin):
 
     def __repr__(self):
         return f'ContentDirectors(id={self.id}, director_id={self.director_id}, content_id={self.content_id})'
+
+
+class Playlist(Base, SaveDeleteDBMixin):
+    title = Column(String(100), nullable=False)
+    description = Column(String(1000))
+    playlist_type = Column(Enum(PlaylistTypeEnum), nullable=False)
+
+    playlist_items = relationship(
+        'PlaylistItem',
+        back_populates='playlist',
+        passive_deletes=True,
+        cascade='save-update, merge, delete'
+    )
+
+
+class PlaylistItem(Base, SaveDeleteDBMixin):
+    __table_args__ = (UniqueConstraint('object_type', 'object_id', 'playlist_id'), )
+
+    playlist_id = Column(Integer, ForeignKey('playlist.id', ondelete='CASCADE'))
+    playlist = relationship('Playlist', back_populates='playlist_items')
+
+    object_type = Column(Enum(PlaylistItemObjectEnum), nullable=False)
+    object_id = Column(Integer, nullable=False)
+    object = generic_relationship(object_type, object_id)

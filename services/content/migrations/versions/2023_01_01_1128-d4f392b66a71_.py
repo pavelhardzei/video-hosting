@@ -1,15 +1,15 @@
 """empty message
 
-Revision ID: 7f7609356bd7
+Revision ID: d4f392b66a71
 Revises:
-Create Date: 2022-09-24 17:00:49.859369
+Create Date: 2023-01-01 11:28:35.133677
 
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '7f7609356bd7'
+revision = 'd4f392b66a71'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,12 +25,12 @@ def upgrade() -> None:
     op.create_table('content',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('title', sa.String(length=50), nullable=False),
-                    sa.Column('description', sa.String(length=500), nullable=False),
+                    sa.Column('description', sa.String(length=1000), nullable=False),
                     sa.Column('year', sa.Integer(), nullable=False),
                     sa.Column('release_date', sa.DateTime(), nullable=True),
                     sa.Column('age_limit', sa.Integer(), nullable=False),
-                    sa.Column('poster', sa.String(length=100), nullable=False),
-                    sa.Column('background', sa.String(length=100), nullable=False),
+                    sa.Column('poster', sa.String(length=200), nullable=False),
+                    sa.Column('background', sa.String(length=200), nullable=False),
                     sa.Column('imdb_rating', sa.Float(), nullable=True),
                     sa.Column('imdb_vote_count', sa.Integer(), nullable=True),
                     sa.Column('kinopoisk_rating', sa.Float(), nullable=True),
@@ -57,11 +57,46 @@ def upgrade() -> None:
     op.create_table('media',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('title', sa.String(length=50), nullable=False),
-                    sa.Column('source', sa.String(length=100), nullable=False),
-                    sa.Column('preview', sa.String(length=100), nullable=True),
+                    sa.Column('source', sa.String(length=200), nullable=False),
+                    sa.Column('preview', sa.String(length=200), nullable=True),
                     sa.Column('duration', sa.Integer(), nullable=True),
                     sa.Column('created_at', sa.DateTime(), nullable=True),
                     sa.PrimaryKeyConstraint('id')
+                    )
+    op.create_table('playlist',
+                    sa.Column('id', sa.Integer(), nullable=False),
+                    sa.Column('title', sa.String(length=100), nullable=False),
+                    sa.Column('description', sa.String(length=1000), nullable=True),
+                    sa.Column('playlist_type', sa.Enum('cards', 'highlights', name='playlisttypeenum'), nullable=False),
+                    sa.PrimaryKeyConstraint('id')
+                    )
+    op.create_table('userlibrary',
+                    sa.Column('id', sa.Integer(), nullable=False),
+                    sa.Column(
+                        'object_type',
+                        sa.Enum(
+                            'movie',
+                            'serial',
+                            'season',
+                            'episode',
+                            'moment',
+                            name='userlibraryobjectenum'),
+                        nullable=False),
+                    sa.Column('object_id', sa.Integer(), nullable=False),
+                    sa.Column('user_id', sa.Integer(), nullable=False),
+                    sa.Column(
+                        'library_type',
+                        sa.Enum(
+                            'favorite',
+                            'watch_later',
+                            'watched',
+                            'history',
+                            name='librarytypeenum'),
+                        nullable=False),
+                    sa.Column('offset', sa.Integer(), nullable=True),
+                    sa.Column('created_at', sa.DateTime(), nullable=True),
+                    sa.PrimaryKeyConstraint('id'),
+                    sa.UniqueConstraint('object_type', 'object_id', 'user_id', 'library_type')
                     )
     op.create_table('contentactors',
                     sa.Column('id', sa.Integer(), nullable=False),
@@ -97,20 +132,59 @@ def upgrade() -> None:
                     )
     op.create_table('movie',
                     sa.Column('id', sa.Integer(), nullable=False),
+                    sa.Column(
+                        'content_type',
+                        sa.Enum(
+                            'movie',
+                            'serial',
+                            'season',
+                            'episode',
+                            'moment',
+                            name='mediacontenttypeenum'),
+                        nullable=True),
                     sa.Column('content_id', sa.Integer(), nullable=True),
                     sa.Column('media_id', sa.Integer(), nullable=True),
                     sa.ForeignKeyConstraint(['content_id'], ['content.id'], ),
                     sa.ForeignKeyConstraint(['media_id'], ['media.id'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
+    op.create_table('playlistitem',
+                    sa.Column('id', sa.Integer(), nullable=False),
+                    sa.Column('playlist_id', sa.Integer(), nullable=True),
+                    sa.Column('object_type', sa.Enum('movie', 'serial', name='playlistitemobjectenum'), nullable=False),
+                    sa.Column('object_id', sa.Integer(), nullable=False),
+                    sa.ForeignKeyConstraint(['playlist_id'], ['playlist.id'], ondelete='CASCADE'),
+                    sa.PrimaryKeyConstraint('id'),
+                    sa.UniqueConstraint('object_type', 'object_id')
+                    )
     op.create_table('serial',
                     sa.Column('id', sa.Integer(), nullable=False),
+                    sa.Column(
+                        'content_type',
+                        sa.Enum(
+                            'movie',
+                            'serial',
+                            'season',
+                            'episode',
+                            'moment',
+                            name='mediacontenttypeenum'),
+                        nullable=True),
                     sa.Column('content_id', sa.Integer(), nullable=True),
                     sa.ForeignKeyConstraint(['content_id'], ['content.id'], ),
                     sa.PrimaryKeyConstraint('id')
                     )
     op.create_table('season',
                     sa.Column('id', sa.Integer(), nullable=False),
+                    sa.Column(
+                        'content_type',
+                        sa.Enum(
+                            'movie',
+                            'serial',
+                            'season',
+                            'episode',
+                            'moment',
+                            name='mediacontenttypeenum'),
+                        nullable=True),
                     sa.Column('serial_id', sa.Integer(), nullable=True),
                     sa.Column('content_id', sa.Integer(), nullable=True),
                     sa.ForeignKeyConstraint(['content_id'], ['content.id'], ),
@@ -119,6 +193,16 @@ def upgrade() -> None:
                     )
     op.create_table('episode',
                     sa.Column('id', sa.Integer(), nullable=False),
+                    sa.Column(
+                        'content_type',
+                        sa.Enum(
+                            'movie',
+                            'serial',
+                            'season',
+                            'episode',
+                            'moment',
+                            name='mediacontenttypeenum'),
+                        nullable=True),
                     sa.Column('season_id', sa.Integer(), nullable=True),
                     sa.Column('content_id', sa.Integer(), nullable=True),
                     sa.Column('media_id', sa.Integer(), nullable=True),
@@ -135,11 +219,14 @@ def downgrade() -> None:
     op.drop_table('episode')
     op.drop_table('season')
     op.drop_table('serial')
+    op.drop_table('playlistitem')
     op.drop_table('movie')
     op.drop_table('contentgenres')
     op.drop_table('contentdirectors')
     op.drop_table('contentcountries')
     op.drop_table('contentactors')
+    op.drop_table('userlibrary')
+    op.drop_table('playlist')
     op.drop_table('media')
     op.drop_table('genre')
     op.drop_table('director')

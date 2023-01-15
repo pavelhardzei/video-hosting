@@ -7,7 +7,7 @@ from grpc_module.proto.authorization_pb2_grpc import AuthorizationStub
 from grpc_module.utils import handle_response
 
 
-def authorize(access_token: str) -> int:
+def authorize(access_token: str) -> dict:
     with open(os.path.join(PROJ_DIR, 'keys', 'client.key'), 'rb') as fp:
         client_key = fp.read()
     with open(os.path.join(PROJ_DIR, 'keys', 'client.pem'), 'rb') as fp:
@@ -21,4 +21,4 @@ def authorize(access_token: str) -> int:
         request = AuthorizationRequest(access_token=access_token)
         response = handle_response(stub.authorize, request)
 
-    return response.id
+    return {'id': response.id, 'role': response.role}

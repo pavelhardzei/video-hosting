@@ -5,8 +5,131 @@ from base.utils.consts import DATETIME_FMT
 from content.schemas.enums import MediaContentTypeEnum
 from fastapi import status
 from tests import client
-from tests.content.factories import ContentFactory, SerialFactory
+from tests.content import factories
 from tests.utils import count_queries
+
+
+def test_movie(movie):
+    response = client.get(f'/api/v1/content/movies/{movie.id}/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        'content_type': MediaContentTypeEnum.movie,
+        'id': movie.id,
+        'title': movie.content.title,
+        'description': movie.content.description,
+        'year': movie.content.year,
+        'release_date': movie.content.release_date.strftime(DATETIME_FMT),
+        'age_limit': movie.content.age_limit,
+        'poster': movie.content.poster,
+        'background': movie.content.background,
+        'imdb_rating': movie.content.imdb_rating,
+        'imdb_vote_count': movie.content.imdb_vote_count,
+        'kinopoisk_rating': movie.content.kinopoisk_rating,
+        'kinopoisk_vote_count': movie.content.kinopoisk_vote_count,
+        'countries': [
+            {
+                'name': ANY,
+                'abbr': ANY,
+                'code': ANY,
+                'id': ANY
+            }
+        ],
+        'genres': [
+            {
+                'name': ANY,
+                'id': ANY
+            }
+        ],
+        'actors': [
+            {
+                'name': ANY,
+                'id': ANY
+            }
+        ],
+        'directors': [
+            {
+                'name': ANY,
+                'id': ANY
+            }
+        ],
+        'source': movie.media.source,
+        'preview': movie.media.preview,
+        'duration': movie.media.duration,
+        'created_at': movie.media.created_at.strftime(DATETIME_FMT)
+    }
+
+
+def test_movie_count_queries(movie, session):
+    pk = movie.id
+
+    with count_queries(session.connection()) as queries:
+        client.get(f'/api/v1/content/movies/{pk}/')
+
+    assert len(queries) == 5
+
+
+def test_movie_no_content():
+    response = client.get('/api/v1/content/movies/1/')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': 'Not found',
+        'error_code': ErrorCodeEnum.not_found
+    }
+
+
+def test_movies(movie):
+    response = client.get('/api/v1/content/movies/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1
+
+
+def test_movies_count_queries(session):
+    factories.MovieFactory.create_batch(
+        10,
+        content=factories.ContentFactory(countries=2, genres=2, actors=2, directors=2)
+    )
+
+    with count_queries(session.connection()) as queries:
+        client.get('/api/v1/content/movies/')
+
+    assert len(queries) == 5
+
+
+def test_movies_no_content():
+    response = client.get('/api/v1/content/movies/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == []
+
+
+def test_movies_pagination():
+    factories.MovieFactory.create_batch(
+        10,
+        content=factories.ContentFactory(countries=2, genres=2, actors=2, directors=2)
+    )
+
+    response = client.get('/api/v1/content/movies/?page=1&size=3')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 3
+    ids1 = {movie['id'] for movie in response.json()}
+
+    response = client.get('/api/v1/content/movies/?page=2&size=3')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 3
+    ids2 = {movie['id'] for movie in response.json()}
+
+    assert ids1 & ids2 == set()
+
+    response = client.get('/api/v1/content/movies/?page=1&size=15')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 10
+
+    response = client.get('/api/v1/content/movies/?page=2&size=15')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 0
 
 
 def test_serial(serial):
@@ -179,17 +302,19 @@ def test_serials(serial):
 
 
 def test_serials_count_queries(session):
-    SerialFactory.create_batch(
+    ''' Short, i.e. do not fetch seasons '''
+
+    factories.SerialFactory.create_batch(
         2,
         seasons=2,
         seasons__episodes=2,
-        content=ContentFactory(countries=1, genres=1, actors=1, directors=1)
+        content=factories.ContentFactory(countries=1, genres=1, actors=1, directors=1)
     )
 
     with count_queries(session.connection()) as queries:
         client.get('/api/v1/content/serials/')
 
-    assert len(queries) == 15
+    assert len(queries) == 5
 
 
 def test_serials_no_content():
@@ -200,11 +325,11 @@ def test_serials_no_content():
 
 
 def test_serials_pagination():
-    SerialFactory.create_batch(
+    factories.SerialFactory.create_batch(
         10,
         seasons=1,
         seasons__episodes=1,
-        content=ContentFactory(countries=1, genres=1, actors=1, directors=1)
+        content=factories.ContentFactory(countries=1, genres=1, actors=1, directors=1)
     )
 
     response = client.get('/api/v1/content/serials/?page=1&size=3')
@@ -224,5 +349,82 @@ def test_serials_pagination():
     assert len(response.json()) == 10
 
     response = client.get('/api/v1/content/serials/?page=2&size=15')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 0
+
+
+def test_playlists(playlist):
+    response = client.get('/api/v1/content/playlists/')
+    assert response.status_code == status.HTTP_200_OK
+
+    assert len(playlist.playlist_items) == 1
+    playlist_item = playlist.playlist_items[0]
+
+    assert response.json() == [
+        {
+            'title': playlist.title,
+            'description': playlist.description,
+            'playlist_type': playlist.playlist_type,
+            'id': ANY,
+            'playlist_items': [
+                {
+                    'id': ANY,
+                    'content_type': playlist_item.object.content_type,
+                    'title': playlist_item.object.content.title,
+                    'description': playlist_item.object.content.description,
+                    'year': playlist_item.object.content.year,
+                    'release_date': playlist_item.object.content.release_date.strftime(DATETIME_FMT),
+                    'age_limit': playlist_item.object.content.age_limit,
+                    'poster': playlist_item.object.content.poster,
+                    'background': playlist_item.object.content.background,
+                    'imdb_rating': playlist_item.object.content.imdb_rating,
+                    'imdb_vote_count': playlist_item.object.content.imdb_vote_count,
+                    'kinopoisk_rating': playlist_item.object.content.kinopoisk_rating,
+                    'kinopoisk_vote_count': playlist_item.object.content.kinopoisk_vote_count
+                }
+            ]
+        }
+    ]
+
+
+def test_playlists_no_content():
+    response = client.get('/api/v1/content/playlists/')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == []
+
+
+def test_playlists_count_queries(session):
+    factories.PlaylistFactory.create_batch(2, create_playlist_items=2)
+
+    with count_queries(session.connection()) as queries:
+        client.get('/api/v1/content/playlists/')
+
+    assert len(queries) == 22
+
+
+def test_playlists_pagination():
+    factories.PlaylistFactory.create_batch(
+        10,
+        create_playlist_items=1
+    )
+
+    response = client.get('/api/v1/content/playlists/?page=1&size=3')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 3
+    ids1 = {playlist['id'] for playlist in response.json()}
+
+    response = client.get('/api/v1/content/playlists/?page=2&size=3')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 3
+    ids2 = {playlist['id'] for playlist in response.json()}
+
+    assert ids1 & ids2 == set()
+
+    response = client.get('/api/v1/content/playlists/?page=1&size=15')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 10
+
+    response = client.get('/api/v1/content/playlists/?page=2&size=15')
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()) == 0

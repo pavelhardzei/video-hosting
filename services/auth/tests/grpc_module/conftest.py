@@ -1,11 +1,11 @@
 import pytest
 from grpc_module.interceptors import ExceptionIntercepter
-from grpc_module.service import AuthorizationServicer
+from grpc_module.service import AuthorizationService
 
 
 @pytest.fixture
 def service():
-    return AuthorizationServicer()
+    return AuthorizationService()
 
 
 @pytest.fixture

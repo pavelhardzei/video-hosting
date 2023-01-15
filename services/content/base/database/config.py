@@ -11,7 +11,7 @@ class DeclarativeBase:
     id = Column(Integer, primary_key=True)
 
 
-engine = create_engine(settings.sqlalchemy_database_url, future=True, echo=True)
+engine = create_engine(settings.sqlalchemy_database_url, future=True, echo=settings.echo)
 SessionLocal = scoped_session(sessionmaker(bind=engine))
 
 Base = declarative_base(cls=DeclarativeBase)

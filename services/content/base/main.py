@@ -1,3 +1,4 @@
+from admin.routers import router as admin_router
 from base.database.dependencies import session_commit_hook
 from base.exceptions import HTTPExceptionWithCode
 from base.schemas.enums import ErrorCodeEnum
@@ -32,6 +33,7 @@ router = APIRouter(
     dependencies=[Depends(session_commit_hook)]
 )
 
+router.include_router(admin_router)
 router.include_router(content_router)
 router.include_router(user_router)
 

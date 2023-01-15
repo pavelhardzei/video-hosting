@@ -1,13 +1,14 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from base.mixins.schemas import FlattenMixin, OrmBaseMixin
 from content.schemas.details import (ContentActorsProxySchema, ContentCountriesProxySchema, ContentDirectorsProxySchema,
                                      ContentGenresProxySchema)
-from content.schemas.enums import MediaContentTypeEnum
+from content.schemas.enums import MediaContentTypeEnum, PlaylistTypeEnum
 from pydantic import BaseModel, Field
 
 
+# BASE
 class MediaBaseSchema(BaseModel):
     source: str
     preview: Optional[str]
@@ -40,6 +41,7 @@ class ContentSchema(OrmBaseMixin, ContentBaseSchema):
     directors: List[ContentDirectorsProxySchema]
 
 
+# MOVIES
 class MovieBaseSchema(BaseModel):
     pass
 
@@ -55,6 +57,7 @@ class MovieListSchema(BaseModel):
     __root__: List[MovieSchema]
 
 
+# SERIALS
 class EpisodeBaseSchema(BaseModel):
     pass
 
@@ -82,13 +85,59 @@ class SerialBaseSchema(BaseModel):
     pass
 
 
-class SerialSchema(OrmBaseMixin, FlattenMixin, SerialBaseSchema):
+class SerialShortSchema(OrmBaseMixin, FlattenMixin, SerialBaseSchema):
     id: int
     content_type: MediaContentTypeEnum
     content: ContentSchema = Field(flatten=True)
 
+
+class SerialShortListSchema(BaseModel):
+    __root__: List[SerialShortSchema]
+
+
+class SerialSchema(SerialShortSchema):
     seasons: List[SeasonSchema]
 
 
 class SerialListSchema(BaseModel):
     __root__: List[SerialSchema]
+
+
+# PLAYLISTS
+class ContentForPlaylistSchema(OrmBaseMixin, ContentBaseSchema):
+    pass
+
+
+class MovieForPlaylistSchema(OrmBaseMixin, FlattenMixin, MovieBaseSchema):
+    id: int
+    content_type: MediaContentTypeEnum
+    content: ContentForPlaylistSchema = Field(flatten=True)
+
+
+class SerialForPlaylistSchema(OrmBaseMixin, FlattenMixin, SerialBaseSchema):
+    id: int
+    content_type: MediaContentTypeEnum
+    content: ContentForPlaylistSchema = Field(flatten=True)
+
+
+class PlaylistItemBaseSchema(BaseModel):
+    pass
+
+
+class PlaylistItemSchema(OrmBaseMixin, FlattenMixin, PlaylistItemBaseSchema):
+    object: Union[MovieForPlaylistSchema, SerialForPlaylistSchema] = Field(flatten=True)
+
+
+class PlaylistBaseSchema(BaseModel):
+    title: str
+    description: Optional[str] = None
+    playlist_type: PlaylistTypeEnum
+
+
+class PlaylistSchema(OrmBaseMixin, PlaylistBaseSchema):
+    id: int
+    playlist_items: List[PlaylistItemSchema]
+
+
+class PlaylistListSchema(BaseModel):
+    __root__: List[PlaylistSchema]

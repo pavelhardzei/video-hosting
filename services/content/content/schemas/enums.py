@@ -7,3 +7,13 @@ class MediaContentTypeEnum(str, enum.Enum):
     season = 'season'
     episode = 'episode'
     moment = 'moment'
+
+
+class PlaylistItemObjectEnum(str, enum.Enum):
+    movie = 'Movie'
+    serial = 'Serial'
+
+
+class PlaylistTypeEnum(str, enum.Enum):
+    cards = 'cards'
+    highlights = 'highlights'

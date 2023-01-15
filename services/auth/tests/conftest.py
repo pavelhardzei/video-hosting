@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from auth import utils
 from base.database.config import Base, engine
@@ -47,7 +49,8 @@ def session(connection):
         session.execute(table.delete())
     session.commit()
 
-    yield session
+    with patch('grpc_module.service.SessionLocal', session):
+        yield session
 
     BaseDBMixin._session_class = default_session_class
     session.close()

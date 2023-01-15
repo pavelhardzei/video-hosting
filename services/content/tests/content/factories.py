@@ -1,5 +1,6 @@
 import factory
 from content.database import models
+from content.schemas import enums
 from faker import Faker
 
 fake = Faker()
@@ -10,7 +11,6 @@ class MediaFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = models.Media
         sqlalchemy_session_persistence = 'commit'
 
-    id = factory.Sequence(lambda pk: pk)
     title = fake.word()
     source = fake.uri()
     preview = fake.image_url()
@@ -120,7 +120,6 @@ class CountryFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = models.Country
         sqlalchemy_session_persistence = 'commit'
 
-    id = factory.Sequence(lambda pk: pk)
     name = fake.country()
     abbr = fake.country_code()
     code = factory.Sequence(lambda code: code)
@@ -131,7 +130,6 @@ class GenreFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = models.Genre
         sqlalchemy_session_persistence = 'commit'
 
-    id = factory.Sequence(lambda pk: pk)
     name = fake.word()
 
 
@@ -140,7 +138,6 @@ class ActorFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = models.Actor
         sqlalchemy_session_persistence = 'commit'
 
-    id = factory.Sequence(lambda pk: pk)
     name = fake.word()
 
 
@@ -149,7 +146,6 @@ class DirectorFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = models.Director
         sqlalchemy_session_persistence = 'commit'
 
-    id = factory.Sequence(lambda pk: pk)
     name = fake.word()
 
 
@@ -187,3 +183,26 @@ class ContentDirectorsFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     content = factory.SubFactory(ContentFactory)
     director = factory.SubFactory(DirectorFactory)
+
+
+class PlaylistFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = models.Playlist
+        sqlalchemy_session_persistence = 'commit'
+
+    title = fake.word()
+    description = fake.sentence(nb_words=10)
+    playlist_type = enums.PlaylistTypeEnum.cards
+
+    @factory.post_generation
+    def create_playlist_items(self, create, value, **kwargs):
+        value = value if value else 0
+        PlaylistItemFactory.create_batch(size=value, playlist=self, **kwargs)
+
+
+class PlaylistItemFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = models.PlaylistItem
+        sqlalchemy_session_persistence = 'commit'
+
+    object = factory.SubFactory(MovieFactory)

@@ -43,14 +43,21 @@ def session(connection):
 def factories_attach_session(session):
     content_factories.MediaFactory._meta.sqlalchemy_session = session
     content_factories.ContentFactory._meta.sqlalchemy_session = session
+
     content_factories.MovieFactory._meta.sqlalchemy_session = session
+
     content_factories.SerialFactory._meta.sqlalchemy_session = session
     content_factories.SeasonFactory._meta.sqlalchemy_session = session
     content_factories.EpisodeFactory._meta.sqlalchemy_session = session
+
+    content_factories.PlaylistFactory._meta.sqlalchemy_session = session
+    content_factories.PlaylistItemFactory._meta.sqlalchemy_session = session
+
     content_factories.CountryFactory._meta.sqlalchemy_session = session
     content_factories.GenreFactory._meta.sqlalchemy_session = session
     content_factories.ActorFactory._meta.sqlalchemy_session = session
     content_factories.DirectorFactory._meta.sqlalchemy_session = session
+
     content_factories.ContentCountriesFactory._meta.sqlalchemy_session = session
     content_factories.ContentGenresFactory._meta.sqlalchemy_session = session
     content_factories.ContentActorsFactory._meta.sqlalchemy_session = session

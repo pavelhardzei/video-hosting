@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     token_expire_minutes: int = 30
     email_resend_timeout_seconds = 30
     refresh_tokens_number = 6
+    echo: bool = False
 
     grpc_server: str
 

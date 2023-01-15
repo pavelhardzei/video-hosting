@@ -8,6 +8,7 @@ PROJ_DIR = Path(__file__).resolve().parent.parent
 class Settings(BaseSettings):
     sqlalchemy_database_url: str
     secret_key: str
+    echo: bool = False
 
     grpc_server: str
 

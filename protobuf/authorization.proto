@@ -12,4 +12,5 @@ message AuthorizationRequest {
 
 message AuthorizationResponse {
   optional uint64 id = 1;
+  optional string role = 2;
 }

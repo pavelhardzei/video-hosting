@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from base.mixins.schemas import OrmBaseMixin
 from content.schemas.content import EpisodeSchema, MovieSchema, SeasonSchema, SerialSchema
 from pydantic import BaseModel
-from users.schemas.enums import LibraryTypeEnum, ObjectTypeEnum
+from users.schemas.enums import LibraryTypeEnum, UserLibraryObjectEnum
 
 
 class UserLibraryBaseSchema(BaseModel):
@@ -13,7 +13,7 @@ class UserLibraryBaseSchema(BaseModel):
 
 
 class UserLibraryCreateSchema(UserLibraryBaseSchema):
-    object_type: ObjectTypeEnum
+    object_type: UserLibraryObjectEnum
     object_id: int
 
 

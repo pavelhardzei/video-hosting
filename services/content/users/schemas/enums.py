@@ -8,7 +8,7 @@ class LibraryTypeEnum(str, enum.Enum):
     history = 'history'
 
 
-class ObjectTypeEnum(str, enum.Enum):
+class UserLibraryObjectEnum(str, enum.Enum):
     movie = 'Movie'
     serial = 'Serial'
     season = 'Season'

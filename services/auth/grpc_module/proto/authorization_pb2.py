@@ -12,7 +12,7 @@ from google.protobuf.internal import builder as _builder
 _sym_db = _symbol_database.Default()
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13\x61uthorization.proto\x12\rauthorization\",\n\x14\x41uthorizationRequest\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\"/\n\x15\x41uthorizationResponse\x12\x0f\n\x02id\x18\x01 \x01(\x04H\x00\x88\x01\x01\x42\x05\n\x03_id2g\n\rAuthorization\x12V\n\tauthorize\x12#.authorization.AuthorizationRequest\x1a$.authorization.AuthorizationResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13\x61uthorization.proto\x12\rauthorization\",\n\x14\x41uthorizationRequest\x12\x14\n\x0c\x61\x63\x63\x65ss_token\x18\x01 \x01(\t\"K\n\x15\x41uthorizationResponse\x12\x0f\n\x02id\x18\x01 \x01(\x04H\x00\x88\x01\x01\x12\x11\n\x04role\x18\x02 \x01(\tH\x01\x88\x01\x01\x42\x05\n\x03_idB\x07\n\x05_role2g\n\rAuthorization\x12V\n\tauthorize\x12#.authorization.AuthorizationRequest\x1a$.authorization.AuthorizationResponseb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'authorization_pb2', globals())
@@ -22,7 +22,7 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _AUTHORIZATIONREQUEST._serialized_start = 38
     _AUTHORIZATIONREQUEST._serialized_end = 82
     _AUTHORIZATIONRESPONSE._serialized_start = 84
-    _AUTHORIZATIONRESPONSE._serialized_end = 131
-    _AUTHORIZATION._serialized_start = 133
-    _AUTHORIZATION._serialized_end = 236
+    _AUTHORIZATIONRESPONSE._serialized_end = 159
+    _AUTHORIZATION._serialized_start = 161
+    _AUTHORIZATION._serialized_end = 264
 # @@protoc_insertion_point(module_scope)

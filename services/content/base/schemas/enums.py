@@ -6,3 +6,4 @@ class ErrorCodeEnum(str, enum.Enum):
     base_error = 'BaseError'
     user_not_found = 'UserNotFound'
     already_exists = 'AlreadyExists'
+    user_is_not_admin = 'UserIsNotAdmin'

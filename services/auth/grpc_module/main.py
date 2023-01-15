@@ -6,7 +6,7 @@ import grpc
 from base.settings import PROJ_DIR, settings
 from grpc_module.interceptors import ExceptionIntercepter
 from grpc_module.proto.authorization_pb2_grpc import add_AuthorizationServicer_to_server
-from grpc_module.service import AuthorizationServicer
+from grpc_module.service import AuthorizationService
 
 
 def serve():
@@ -15,7 +15,7 @@ def serve():
         interceptors=(ExceptionIntercepter(), )
     )
 
-    add_AuthorizationServicer_to_server(AuthorizationServicer(), server)
+    add_AuthorizationServicer_to_server(AuthorizationService(), server)
 
     with open(os.path.join(PROJ_DIR, 'keys', 'server.key'), 'rb') as fp:
         server_key = fp.read()

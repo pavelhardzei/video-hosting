@@ -1,5 +1,4 @@
-from content.movies.routers import router as movies_router
-from content.serials.routers import router as serials_router
+from content.content.routers import movies_router, playlists_router, serials_router
 from fastapi import APIRouter
 
 router = APIRouter(
@@ -8,4 +7,5 @@ router = APIRouter(
 )
 
 router.include_router(movies_router)
+router.include_router(playlists_router)
 router.include_router(serials_router)
