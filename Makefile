@@ -14,4 +14,6 @@ content:
 	docker-compose exec -it content bash
 content_db:
 	docker-compose exec -it content_db psql -U postgres
-.PHONY: up up_bg down build auth auth_db content content_db
+up_prod:
+	docker-compose -f docker-compose.production.yaml up -d
+.PHONY: up up_bg down build auth auth_db content content_db up_prod

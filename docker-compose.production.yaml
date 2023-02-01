@@ -1,0 +1,82 @@
+version: "3.9"
+
+volumes:
+  auth_data:
+  content_data:
+
+services:
+  auth_db:
+    image: postgres
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+    env_file:
+      - .db.env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+  auth:
+    build: ./services/auth/
+    volumes:
+      - ./services/auth/:/opt/
+    entrypoint: uvicorn base.main:app --root-path /auth --host 0.0.0.0 --port 8001
+    env_file:
+      - .auth.env
+    depends_on:
+      - auth_db
+      - auth_migrations
+    ports:
+      - "8001:8001"
+  auth_migrations:
+    build: ./services/auth/
+    volumes:
+      - ./services/auth/:/opt/
+    entrypoint: ./migrationsscript.sh
+    env_file:
+      - .auth.env
+    depends_on:
+      auth_db:
+        condition: service_healthy
+  auth_grpc:
+    build: ./services/auth/
+    volumes:
+      - ./services/auth/:/opt/
+    entrypoint: python -m grpc_module.main
+    env_file:
+      - .auth.env
+    depends_on:
+      - auth
+  content_db:
+    image: postgres
+    volumes:
+      - content_data:/var/lib/postgresql/data
+    env_file:
+      - .db.env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+  content:
+    build: ./services/content/
+    volumes:
+      - ./services/content/:/opt/
+    entrypoint: uvicorn base.main:app --root-path /content --host 0.0.0.0 --port 8002
+    env_file:
+      - .content.env
+    depends_on:
+      - content_db
+      - content_migrations
+    ports:
+      - "8002:8002"
+  content_migrations:
+    build: ./services/content/
+    volumes:
+      - ./services/content/:/opt/
+    entrypoint: ./migrationsscript.sh
+    env_file:
+      - .content.env
+    depends_on:
+      content_db:
+        condition: service_healthy
