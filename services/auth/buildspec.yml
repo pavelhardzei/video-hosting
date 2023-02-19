@@ -30,10 +30,11 @@ phases:
   build:
     commands:
       - python -m pip install --upgrade pip
-      - python -m pip install poetry
+      - pip install poetry
       - cd services/auth/
-      - python -m poetry install -n
-      - python -m poetry run pytest --junitxml=tests/auth_report
+      - poetry install -n
+      - poetry shell
+      - pytest --junitxml=tests/auth_report
   post_build:
     commands:
       - docker rm -f sample-postgres
