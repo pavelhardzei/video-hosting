@@ -29,12 +29,13 @@ phases:
       - docker run -p 5432:5432 --name sample-postgres -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD -e POSTGRES_USER=$POSTGRES_USER -e POSTGRES_DB=$POSTGRES_DB -d postgres
   build:
     commands:
-      - python -m pip install --upgrade pip
-      - pip install poetry
+      - python -m pip3 install --upgrade pip3
+      - pip3 install poetry
       - cd services/auth/
       - poetry install -n
-      - poetry shell
-      - pytest --junitxml=tests/auth_report
+      - echo $(poetry show --tree)
+      - echo $(pip3 list)
+      - poetry run pytest --junitxml=tests/auth_report
   post_build:
     commands:
       - docker rm -f sample-postgres
