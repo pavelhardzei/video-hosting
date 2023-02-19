@@ -46,7 +46,7 @@ reports:
   pytest_reports:
     files:
       - auth_report
-    base-directory: service/auth/tests
+    base-directory: services/auth/tests
     file-format: JUNITXML
 
 cache:
