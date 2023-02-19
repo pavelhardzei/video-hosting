@@ -5,6 +5,7 @@ env:
     POSTGRES_USER: "postgres"
     POSTGRES_PASSWORD: "postgres"
     POSTGRES_DB: "postgres"
+
     SQLALCHEMY_DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
     SECRET_KEY: "12345678"
 
@@ -34,8 +35,6 @@ phases:
       - poetry config virtualenvs.create false
       - cd services/auth/
       - poetry install -n
-      - echo $(poetry show --tree)
-      - echo $(pip3 list)
       - poetry add requests
       - poetry run alembic upgrade head
       - poetry run pytest --junitxml=tests/auth_report
@@ -47,7 +46,7 @@ reports:
   pytest_reports:
     files:
       - auth_report
-    base-directory: tests
+    base-directory: service/auth/tests
     file-format: JUNITXML
 
 cache:
