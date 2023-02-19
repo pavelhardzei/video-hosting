@@ -3,8 +3,8 @@ name: DarkTheater CI (Auth Service)
 on:
   push:
     branches: [ feature/codebuild ]  # main
-  paths:
-    - 'services/auth/**'
+    paths:
+      - 'services/auth/**'
 
 jobs:
   continuous-integration:
