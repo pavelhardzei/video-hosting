@@ -1,0 +1,51 @@
+version: 0.2
+
+env:
+  variables:
+    POSTGRES_USER: "postgres"
+    POSTGRES_PASSWORD: "postgres"
+    POSTGRES_DB: "postgres"
+
+    SQLALCHEMY_DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+    SECRET_KEY: "12345678"
+
+    MAIL_USERNAME: "info.darkguin@gmail.com"
+    MAIL_PASSWORD: "fakepassword"
+    MAIL_FROM: "info.darkguin@gmail.com"
+    MAIL_PORT: "587"
+    MAIL_SERVER: "smtp.gmail.com"
+    MAIL_TLS: "True"
+    MAIL_SSL: "False"
+
+    GRPC_SERVER: "[::]:443"
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.10
+    commands:
+      - docker pull postgres
+  pre_build:
+    commands:
+      - docker run -p 5432:5432 --name sample-postgres -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD -e POSTGRES_USER=$POSTGRES_USER -e POSTGRES_DB=$POSTGRES_DB -d postgres
+  build:
+    commands:
+      - python -m pip install --upgrade pip
+      - pip install poetry
+      - poetry config virtualenvs.create false --local
+      - poetry install -n
+      - python -m pytest --junitxml=reports
+  post_build:
+    commands:
+      - docker rm -f sample-postgres
+
+reports:
+  pytest_reports:
+    files:
+      - auth_report
+    base-directory: reports
+    file-format: JUNITXML
+
+cache:
+  paths:
+    - "/root/.cache/pip/*"
