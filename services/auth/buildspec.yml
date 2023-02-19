@@ -35,6 +35,7 @@ phases:
       - echo $(poetry show --tree)
       - echo $(pip3 list)
       - poetry add requests
+      - alembic upgrade head
       - poetry run pytest --junitxml=tests/auth_report
   post_build:
     commands:
