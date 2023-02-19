@@ -32,8 +32,9 @@ phases:
       - python -m pip install --upgrade pip
       - pip install poetry
       - poetry config virtualenvs.create false --local
+      - cd services/auth/
       - poetry install -n
-      - python -m pytest --junitxml=reports
+      - python -m pytest --junitxml=tests
   post_build:
     commands:
       - docker rm -f sample-postgres
@@ -42,7 +43,7 @@ reports:
   pytest_reports:
     files:
       - auth_report
-    base-directory: reports
+    base-directory: tests
     file-format: JUNITXML
 
 cache:
