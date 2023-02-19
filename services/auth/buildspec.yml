@@ -33,7 +33,7 @@ phases:
       - pip install poetry
       - cd services/auth/
       - poetry install -n
-      - poetry run pytest --junitxml=tests
+      - poetry run pytest --junitxml=tests/auth_report
   post_build:
     commands:
       - docker rm -f sample-postgres
