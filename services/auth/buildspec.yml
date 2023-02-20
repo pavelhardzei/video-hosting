@@ -37,7 +37,7 @@ phases:
       - poetry install -n
       - poetry add requests
       - poetry run alembic upgrade head
-      - poetry run pytest --junitxml=tests/auth_report
+      - poetry run pytest --junitxml=tests/auth_report.xml
   post_build:
     commands:
       - docker rm -f sample-postgres
@@ -45,7 +45,7 @@ phases:
 reports:
   pytest_reports:
     files:
-      - auth_report
+      - auth_report.xml
     base-directory: services/auth/tests
     file-format: JUNITXML
 
