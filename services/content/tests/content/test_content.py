@@ -353,38 +353,62 @@ def test_serials_pagination():
     assert len(response.json()) == 0
 
 
-def test_playlists(playlist):
-    response = client.get('/api/v1/content/playlists/')
+def test_playlist(playlist):
+    response = client.get(f'/api/v1/content/playlists/{playlist.id}/')
     assert response.status_code == status.HTTP_200_OK
 
     assert len(playlist.playlist_items) == 1
     playlist_item = playlist.playlist_items[0]
 
-    assert response.json() == [
-        {
-            'title': playlist.title,
-            'description': playlist.description,
-            'playlist_type': playlist.playlist_type,
-            'id': ANY,
-            'playlist_items': [
-                {
-                    'id': ANY,
-                    'content_type': playlist_item.object.content_type,
-                    'title': playlist_item.object.content.title,
-                    'description': playlist_item.object.content.description,
-                    'year': playlist_item.object.content.year,
-                    'release_date': playlist_item.object.content.release_date.strftime(DATETIME_FMT),
-                    'age_limit': playlist_item.object.content.age_limit,
-                    'poster': playlist_item.object.content.poster,
-                    'background': playlist_item.object.content.background,
-                    'imdb_rating': playlist_item.object.content.imdb_rating,
-                    'imdb_vote_count': playlist_item.object.content.imdb_vote_count,
-                    'kinopoisk_rating': playlist_item.object.content.kinopoisk_rating,
-                    'kinopoisk_vote_count': playlist_item.object.content.kinopoisk_vote_count
-                }
-            ]
-        }
-    ]
+    assert response.json() == {
+        'title': playlist.title,
+        'description': playlist.description,
+        'playlist_type': playlist.playlist_type,
+        'id': ANY,
+        'playlist_items': [
+            {
+                'id': ANY,
+                'content_type': playlist_item.object.content_type,
+                'title': playlist_item.object.content.title,
+                'description': playlist_item.object.content.description,
+                'year': playlist_item.object.content.year,
+                'release_date': playlist_item.object.content.release_date.strftime(DATETIME_FMT),
+                'age_limit': playlist_item.object.content.age_limit,
+                'poster': playlist_item.object.content.poster,
+                'background': playlist_item.object.content.background,
+                'imdb_rating': playlist_item.object.content.imdb_rating,
+                'imdb_vote_count': playlist_item.object.content.imdb_vote_count,
+                'kinopoisk_rating': playlist_item.object.content.kinopoisk_rating,
+                'kinopoisk_vote_count': playlist_item.object.content.kinopoisk_vote_count
+            }
+        ]
+    }
+
+
+def test_playlist_count_queries(session, playlist):
+    pk = playlist.id
+
+    with count_queries(session.connection()) as queries:
+        client.get(f'/api/v1/content/playlists/{pk}/')
+
+    assert len(queries) == 7
+
+
+def test_playlist_no_content():
+    response = client.get('/api/v1/content/playlists/1/')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': 'Not found',
+        'error_code': ErrorCodeEnum.not_found
+    }
+
+
+def test_playlists(playlist):
+    response = client.get('/api/v1/content/playlists/')
+    assert response.status_code == status.HTTP_200_OK
+
+    assert len(response.json()) == 1
 
 
 def test_playlists_no_content():
