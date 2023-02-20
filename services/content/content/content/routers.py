@@ -3,7 +3,7 @@ from base.permissions import check_permissions
 from base.schemas.schemas import ErrorSchema
 from base.utils.pagination import Params, paginate
 from content.database.models import Movie, Playlist, Serial
-from content.schemas.content import (MovieListSchema, MovieSchema, PlaylistListSchema, SerialSchema,
+from content.schemas.content import (MovieListSchema, MovieSchema, PlaylistListSchema, PlaylistSchema, SerialSchema,
                                      SerialShortListSchema)
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session, subqueryload
@@ -53,8 +53,14 @@ def serial(id: int, session: Session = Depends(session_dependency)):
 
 @playlists_router.get('/', response_model=PlaylistListSchema)
 def playlists(params: Params = Depends(), session: Session = Depends(session_dependency)):
-    playlists = session.query(Playlist).options(
-        subqueryload(Playlist.playlist_items)
-    ).order_by(Playlist.id)
+    playlists = session.query(Playlist).options(subqueryload(Playlist.playlist_items)).order_by(Playlist.id)
 
     return paginate(playlists, params)
+
+
+@playlists_router.get('/{id}/', response_model=PlaylistSchema)
+def playlist(id: int, session: Session = Depends(session_dependency)):
+    playlist = session.query(Playlist).options(subqueryload(Playlist.playlist_items)).filter(Playlist.id == id).first()
+    check_permissions(playlist, [])
+
+    return playlist
