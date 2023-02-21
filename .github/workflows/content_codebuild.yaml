@@ -2,7 +2,7 @@ name: DarkTheater CI (Content Service)
 
 on:
   push:
-    branches: [ feature/codebuild ]  # main
+    branches: [ main ]
     paths:
       - 'services/content/**'
 

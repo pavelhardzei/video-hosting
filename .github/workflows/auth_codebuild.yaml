@@ -2,7 +2,7 @@ name: DarkTheater CI (Auth Service)
 
 on:
   push:
-    branches: [ feature/codebuild ]  # main
+    branches: [ main]
     paths:
       - 'services/auth/**'
 
