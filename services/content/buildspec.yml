@@ -1,0 +1,46 @@
+version: 0.2
+
+env:
+  parameter-store:
+    POSTGRES_USER: /dark/content/prod/POSTGRES_USER
+    POSTGRES_PASSWORD: /dark/content/prod/POSTGRES_PASSWORD
+    POSTGRES_DB: /dark/content/prod/POSTGRES_DB
+
+    SQLALCHEMY_DATABASE_URL: /dark/content/build/SQLALCHEMY_DATABASE_URL
+    SECRET_KEY: /dark/content/prod/SECRET_KEY
+
+    GRPC_SERVER: /dark/content/prod/GRPC_SERVER
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.10
+    commands:
+      - docker pull postgres
+  pre_build:
+    commands:
+      - docker run -p 5432:5432 --name sample-postgres -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD -e POSTGRES_USER=$POSTGRES_USER -e POSTGRES_DB=$POSTGRES_DB -d postgres
+  build:
+    commands:
+      - python -m pip install --upgrade pip
+      - pip install poetry
+      - poetry config virtualenvs.create false
+      - cd services/content/
+      - poetry install -n
+      - poetry add requests
+      - poetry run alembic upgrade head
+      - poetry run pytest --junitxml=tests/content_report.xml
+  post_build:
+    commands:
+      - docker rm -f sample-postgres
+
+reports:
+  pytest_reports:
+    files:
+      - content_report.xml
+    base-directory: services/content/tests
+    file-format: JUNITXML
+
+cache:
+  paths:
+    - "/root/.cache/pip/*"
