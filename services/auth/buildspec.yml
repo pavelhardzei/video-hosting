@@ -1,0 +1,54 @@
+version: 0.2
+
+env:
+  parameter-store:
+    POSTGRES_USER: /dark/auth/prod/POSTGRES_USER
+    POSTGRES_PASSWORD: /dark/auth/prod/POSTGRES_PASSWORD
+    POSTGRES_DB: /dark/auth/prod/POSTGRES_DB
+
+    SQLALCHEMY_DATABASE_URL: /dark/auth/build/SQLALCHEMY_DATABASE_URL
+    SECRET_KEY: /dark/auth/prod/SECRET_KEY
+
+    MAIL_USERNAME: /dark/auth/prod/MAIL_USERNAME
+    MAIL_PASSWORD: /dark/auth/prod/MAIL_PASSWORD
+    MAIL_FROM: /dark/auth/prod/MAIL_FROM
+    MAIL_PORT: /dark/auth/prod/MAIL_PORT
+    MAIL_SERVER: /dark/auth/prod/MAIL_SERVER
+    MAIL_TLS: /dark/auth/prod/MAIL_TLS
+    MAIL_SSL: /dark/auth/prod/MAIL_SSL
+
+    GRPC_SERVER: /dark/auth/prod/GRPC_SERVER
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.10
+    commands:
+      - docker pull postgres
+  pre_build:
+    commands:
+      - docker run -p 5432:5432 --name sample-postgres -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD -e POSTGRES_USER=$POSTGRES_USER -e POSTGRES_DB=$POSTGRES_DB -d postgres
+  build:
+    commands:
+      - python -m pip install --upgrade pip
+      - pip install poetry
+      - poetry config virtualenvs.create false
+      - cd services/auth/
+      - poetry install -n
+      - poetry add requests
+      - poetry run alembic upgrade head
+      - poetry run pytest --junitxml=tests/auth_report.xml
+  post_build:
+    commands:
+      - docker rm -f sample-postgres
+
+reports:
+  pytest_reports:
+    files:
+      - auth_report.xml
+    base-directory: services/auth/tests
+    file-format: JUNITXML
+
+cache:
+  paths:
+    - "/root/.cache/pip/*"
