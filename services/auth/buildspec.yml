@@ -6,7 +6,7 @@ env:
     POSTGRES_PASSWORD: /dark/auth/prod/POSTGRES_PASSWORD
     POSTGRES_DB: /dark/auth/prod/POSTGRES_DB
 
-    SQLALCHEMY_DATABASE_URL: /dark/auth/prod/SQLALCHEMY_DATABASE_URL
+    SQLALCHEMY_DATABASE_URL: /dark/auth/build/SQLALCHEMY_DATABASE_URL
     SECRET_KEY: /dark/auth/prod/SECRET_KEY
 
     MAIL_USERNAME: /dark/auth/prod/MAIL_USERNAME
