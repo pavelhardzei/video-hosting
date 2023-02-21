@@ -1,23 +1,23 @@
 version: 0.2
 
 env:
-  variables:
-    POSTGRES_USER: "postgres"
-    POSTGRES_PASSWORD: "postgres"
-    POSTGRES_DB: "postgres"
+  parameter-store:
+    POSTGRES_USER: /dark/auth/prod/POSTGRES_USER
+    POSTGRES_PASSWORD: /dark/auth/prod/POSTGRES_PASSWORD
+    POSTGRES_DB: /dark/auth/prod/POSTGRES_DB
 
-    SQLALCHEMY_DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
-    SECRET_KEY: "12345678"
+    SQLALCHEMY_DATABASE_URL: /dark/auth/prod/SQLALCHEMY_DATABASE_URL
+    SECRET_KEY: /dark/auth/prod/SECRET_KEY
 
-    MAIL_USERNAME: "info.darkguin@gmail.com"
-    MAIL_PASSWORD: "fakepassword"
-    MAIL_FROM: "info.darkguin@gmail.com"
-    MAIL_PORT: "587"
-    MAIL_SERVER: "smtp.gmail.com"
-    MAIL_TLS: "True"
-    MAIL_SSL: "False"
+    MAIL_USERNAME: /dark/auth/prod/MAIL_USERNAME
+    MAIL_PASSWORD: /dark/auth/prod/MAIL_PASSWORD
+    MAIL_FROM: /dark/auth/prod/MAIL_FROM
+    MAIL_PORT: /dark/auth/prod/MAIL_PORT
+    MAIL_SERVER: /dark/auth/prod/MAIL_SERVER
+    MAIL_TLS: /dark/auth/prod/MAIL_TLS
+    MAIL_SSL: /dark/auth/prod/MAIL_SSL
 
-    GRPC_SERVER: "[::]:443"
+    GRPC_SERVER: /dark/auth/prod/GRPC_SERVER
 
 phases:
   install:
