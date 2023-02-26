@@ -95,12 +95,8 @@ class SeasonFactory(factory.alchemy.SQLAlchemyModelFactory):
     @factory.post_generation
     def create_episodes(self, create, value, **kwargs):
         content = kwargs.pop(
-            'content',
-            ContentFactory(
-                create_countries=2,
-                create_genres=2,
-                create_actors=2,
-                create_directors=2))
+            'content', ContentFactory(create_countries=2, create_genres=2, create_actors=2, create_directors=2)
+        )
         EpisodeFactory.create_batch(
             size=value or 2,
             season=self,
