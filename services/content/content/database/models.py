@@ -34,10 +34,10 @@ class Content(Base, SaveDeleteDBMixin):
     kinopoisk_rating = Column(Float)
     kinopoisk_vote_count = Column(Integer)
 
-    countries = relationship('ContentCountries', back_populates='content', lazy='subquery')
-    genres = relationship('ContentGenres', back_populates='content', lazy='subquery')
-    actors = relationship('ContentActors', back_populates='content', lazy='subquery')
-    directors = relationship('ContentDirectors', back_populates='content', lazy='subquery')
+    countries = relationship('ContentCountries', back_populates='content')
+    genres = relationship('ContentGenres', back_populates='content')
+    actors = relationship('ContentActors', back_populates='content')
+    directors = relationship('ContentDirectors', back_populates='content')
 
     def __repr__(self):
         return f'Content(id={self.id})'
