@@ -130,11 +130,15 @@ def test_movies_pagination():
 
 def test_serial():
     serial = factories.SerialFactory(
-        seasons=1,
-        content=factories.ContentFactory(countries=1, genres=1, actors=1, directors=1),
-        seasons__content=factories.ContentFactory(countries=1, genres=1, actors=1, directors=1),
-        seasons__episodes=1,
-        seasons__episodes__content=factories.ContentFactory(countries=1, genres=1, actors=1, directors=1),
+        create_seasons=1,
+        content=factories.ContentFactory(create_countries=1, create_genres=1, create_actors=1, create_directors=1),
+        create_seasons__content=factories.ContentFactory(
+            create_countries=1, create_genres=1, create_actors=1, create_directors=1
+        ),
+        create_seasons__create_episodes=1,
+        create_seasons__create_episodes__content=factories.ContentFactory(
+            create_countries=1, create_genres=1, create_actors=1, create_directors=1
+        ),
     )
     response = client.get(f'/api/v1/content/serials/{serial.id}/')
 
@@ -327,9 +331,9 @@ def test_serials_no_content():
 def test_serials_pagination():
     factories.SerialFactory.create_batch(
         10,
-        seasons=1,
-        seasons__episodes=1,
-        content=factories.ContentFactory(countries=1, genres=1, actors=1, directors=1)
+        create_seasons=1,
+        create_seasons__create_episodes=1,
+        content=factories.ContentFactory(create_countries=1, create_genres=1, create_actors=1, create_directors=1)
     )
 
     response = client.get('/api/v1/content/serials/?page=1&size=3')

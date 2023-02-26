@@ -37,19 +37,19 @@ class ContentFactory(factory.alchemy.SQLAlchemyModelFactory):
     kinopoisk_vote_count = fake.pyint(max_value=1000)
 
     @factory.post_generation
-    def countries(self, create, value, **kwargs):
+    def create_countries(self, create, value, **kwargs):
         ContentCountriesFactory.create_batch(size=value or 2, country=CountryFactory(), content=self, **kwargs)
 
     @factory.post_generation
-    def genres(self, create, value, **kwargs):
+    def create_genres(self, create, value, **kwargs):
         ContentGenresFactory.create_batch(size=value or 2, genre=GenreFactory(), content=self, **kwargs)
 
     @factory.post_generation
-    def actors(self, create, value, **kwargs):
+    def create_actors(self, create, value, **kwargs):
         ContentActorsFactory.create_batch(size=value or 2, actor=ActorFactory(), content=self, **kwargs)
 
     @factory.post_generation
-    def directors(self, create, value, **kwargs):
+    def create_directors(self, create, value, **kwargs):
         ContentDirectorsFactory.create_batch(size=value or 2, director=DirectorFactory(), content=self, **kwargs)
 
 
@@ -70,14 +70,16 @@ class SerialFactory(factory.alchemy.SQLAlchemyModelFactory):
     content = factory.SubFactory(ContentFactory)
 
     @factory.post_generation
-    def seasons(self, create, value, **kwargs):
-        episodes = kwargs.pop('episodes', 2)
-        content = kwargs.pop('content', ContentFactory(countries=2, genres=2, actors=2, directors=2))
+    def create_seasons(self, create, value, **kwargs):
+        episodes = kwargs.pop('create_episodes', 2)
+        content = kwargs.pop('content', ContentFactory(
+            create_countries=2, create_genres=2, create_actors=2, create_directors=2)
+        )
         SeasonFactory.create_batch(
             size=value or 2,
             serial=self,
             content=content,
-            episodes=episodes,
+            create_episodes=episodes,
             **kwargs
         )
 
@@ -91,8 +93,14 @@ class SeasonFactory(factory.alchemy.SQLAlchemyModelFactory):
     content = factory.SubFactory(ContentFactory)
 
     @factory.post_generation
-    def episodes(self, create, value, **kwargs):
-        content = kwargs.pop('content', ContentFactory(countries=2, genres=2, actors=2, directors=2))
+    def create_episodes(self, create, value, **kwargs):
+        content = kwargs.pop(
+            'content',
+            ContentFactory(
+                create_countries=2,
+                create_genres=2,
+                create_actors=2,
+                create_directors=2))
         EpisodeFactory.create_batch(
             size=value or 2,
             season=self,
