@@ -2,7 +2,8 @@ from datetime import datetime
 from typing import List, Optional, Union
 
 from base.mixins.schemas import OrmBaseMixin
-from content.schemas.content import EpisodeSchema, MovieSchema, SeasonSchema, SerialSchema
+from content.schemas.content import (EpisodeTruncatedSchema, MovieTruncatedSchema, SeasonTruncatedSchema,
+                                     SerialTruncatedSchema)
 from pydantic import BaseModel
 from users.schemas.enums import LibraryTypeEnum, UserLibraryObjectEnum
 
@@ -21,7 +22,7 @@ class UserLibrarySchema(OrmBaseMixin, UserLibraryBaseSchema):
     id: int
     user_id: int
     created_at: Optional[datetime] = None
-    object: Union[MovieSchema, SerialSchema, SeasonSchema, EpisodeSchema]
+    object: Union[EpisodeTruncatedSchema, MovieTruncatedSchema, SerialTruncatedSchema, SeasonTruncatedSchema]
 
 
 class UserLibraryListSchema(BaseModel):
