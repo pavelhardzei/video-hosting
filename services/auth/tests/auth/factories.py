@@ -19,6 +19,14 @@ class UserProfileFactory(factory.alchemy.SQLAlchemyModelFactory):
     role = RoleEnum.viewer
     password = utils.pwd_context.hash('testing321')
 
+    @factory.post_generation
+    def create_access_token(self, *args, **kwargs):
+        UserSecurityFactory(user=self, access_token=utils.create_token({'id': self.id}))
+
+    @factory.post_generation
+    def create_refresh_token(self, *args, **kwargs):
+        UserRefreshTokensFactory(user=self)
+
 
 class UserSecurityFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
