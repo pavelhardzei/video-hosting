@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import ANY
 
 from auth import utils
-from auth.database.models import UserProfile
+from auth.database.models import UserProfile, UserRefreshTokens
 from auth.schemas.enums import ConfirmationTypeEnum, RoleEnum
 from auth.utils import fm
 from base.schemas.enums import ErrorCodeEnum
@@ -142,6 +142,9 @@ def test_signin(session, user):
 
 
 def test_signin_limited_refresh_tokens_number(session, user):
+    session.query(UserRefreshTokens).filter(UserRefreshTokens.user_id == user.id).delete()
+    assert session.query(UserRefreshTokens).count() == 0
+
     for _ in range(settings.refresh_tokens_number):
         response = client.post('/api/v1/auth/signin/', data={'username': user.email,
                                                              'password': 'testing321'})
