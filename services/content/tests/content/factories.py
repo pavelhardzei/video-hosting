@@ -37,24 +37,20 @@ class ContentFactory(factory.alchemy.SQLAlchemyModelFactory):
     kinopoisk_vote_count = fake.pyint(max_value=1000)
 
     @factory.post_generation
-    def countries(self, create, value, **kwargs):
-        value = value if value else 0
-        ContentCountriesFactory.create_batch(size=value, country=CountryFactory(), content=self, **kwargs)
+    def create_countries(self, create, value, **kwargs):
+        ContentCountriesFactory.create_batch(size=value or 2, country=CountryFactory(), content=self, **kwargs)
 
     @factory.post_generation
-    def genres(self, create, value, **kwargs):
-        value = value if value else 0
-        ContentGenresFactory.create_batch(size=value, genre=GenreFactory(), content=self, **kwargs)
+    def create_genres(self, create, value, **kwargs):
+        ContentGenresFactory.create_batch(size=value or 2, genre=GenreFactory(), content=self, **kwargs)
 
     @factory.post_generation
-    def actors(self, create, value, **kwargs):
-        value = value if value else 0
-        ContentActorsFactory.create_batch(size=value, actor=ActorFactory(), content=self, **kwargs)
+    def create_actors(self, create, value, **kwargs):
+        ContentActorsFactory.create_batch(size=value or 2, actor=ActorFactory(), content=self, **kwargs)
 
     @factory.post_generation
-    def directors(self, create, value, **kwargs):
-        value = value if value else 0
-        ContentDirectorsFactory.create_batch(size=value, director=DirectorFactory(), content=self, **kwargs)
+    def create_directors(self, create, value, **kwargs):
+        ContentDirectorsFactory.create_batch(size=value or 2, director=DirectorFactory(), content=self, **kwargs)
 
 
 class MovieFactory(factory.alchemy.SQLAlchemyModelFactory):
@@ -74,14 +70,16 @@ class SerialFactory(factory.alchemy.SQLAlchemyModelFactory):
     content = factory.SubFactory(ContentFactory)
 
     @factory.post_generation
-    def seasons(self, create, value, **kwargs):
-        value = value if value else 0
-        episodes = kwargs.pop('episodes', 1)
+    def create_seasons(self, create, value, **kwargs):
+        episodes = kwargs.pop('create_episodes', 2)
+        content = kwargs.pop('content', ContentFactory(
+            create_countries=2, create_genres=2, create_actors=2, create_directors=2)
+        )
         SeasonFactory.create_batch(
-            size=value,
+            size=value or 2,
             serial=self,
-            content=ContentFactory(countries=1, genres=1, actors=1, directors=1),
-            episodes=episodes,
+            content=content,
+            create_episodes=episodes,
             **kwargs
         )
 
@@ -95,12 +93,14 @@ class SeasonFactory(factory.alchemy.SQLAlchemyModelFactory):
     content = factory.SubFactory(ContentFactory)
 
     @factory.post_generation
-    def episodes(self, create, value, **kwargs):
-        value = value if value else 0
+    def create_episodes(self, create, value, **kwargs):
+        content = kwargs.pop(
+            'content', ContentFactory(create_countries=2, create_genres=2, create_actors=2, create_directors=2)
+        )
         EpisodeFactory.create_batch(
-            size=value,
+            size=value or 2,
             season=self,
-            content=ContentFactory(countries=1, genres=1, actors=1, directors=1),
+            content=content,
             **kwargs
         )
 
@@ -196,8 +196,7 @@ class PlaylistFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     @factory.post_generation
     def create_playlist_items(self, create, value, **kwargs):
-        value = value if value else 0
-        PlaylistItemFactory.create_batch(size=value, playlist=self, **kwargs)
+        PlaylistItemFactory.create_batch(size=value or 2, playlist=self, **kwargs)
 
 
 class PlaylistItemFactory(factory.alchemy.SQLAlchemyModelFactory):

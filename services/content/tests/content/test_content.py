@@ -64,8 +64,9 @@ def test_movie_count_queries(movie, session):
     pk = movie.id
 
     with count_queries(session.connection()) as queries:
-        client.get(f'/api/v1/content/movies/{pk}/')
+        response = client.get(f'/api/v1/content/movies/{pk}/')
 
+    assert response.status_code == status.HTTP_200_OK
     assert len(queries) == 5
 
 
@@ -87,14 +88,12 @@ def test_movies(movie):
 
 
 def test_movies_count_queries(session):
-    factories.MovieFactory.create_batch(
-        10,
-        content=factories.ContentFactory(countries=2, genres=2, actors=2, directors=2)
-    )
+    factories.MovieFactory.create_batch(10)
 
     with count_queries(session.connection()) as queries:
-        client.get('/api/v1/content/movies/')
+        response = client.get('/api/v1/content/movies/')
 
+    assert response.status_code == status.HTTP_200_OK
     assert len(queries) == 5
 
 
@@ -106,10 +105,7 @@ def test_movies_no_content():
 
 
 def test_movies_pagination():
-    factories.MovieFactory.create_batch(
-        10,
-        content=factories.ContentFactory(countries=2, genres=2, actors=2, directors=2)
-    )
+    factories.MovieFactory.create_batch(10)
 
     response = client.get('/api/v1/content/movies/?page=1&size=3')
     assert response.status_code == status.HTTP_200_OK
@@ -132,7 +128,18 @@ def test_movies_pagination():
     assert len(response.json()) == 0
 
 
-def test_serial(serial):
+def test_serial():
+    serial = factories.SerialFactory(
+        create_seasons=1,
+        content=factories.ContentFactory(create_countries=1, create_genres=1, create_actors=1, create_directors=1),
+        create_seasons__content=factories.ContentFactory(
+            create_countries=1, create_genres=1, create_actors=1, create_directors=1
+        ),
+        create_seasons__create_episodes=1,
+        create_seasons__create_episodes__content=factories.ContentFactory(
+            create_countries=1, create_genres=1, create_actors=1, create_directors=1
+        ),
+    )
     response = client.get(f'/api/v1/content/serials/{serial.id}/')
 
     assert len(serial.seasons) == 1
@@ -279,8 +286,9 @@ def test_serial_count_queries(serial, session):
     pk = serial.id
 
     with count_queries(session.connection()) as queries:
-        client.get(f'/api/v1/content/serials/{pk}/')
+        response = client.get(f'/api/v1/content/serials/{pk}/')
 
+    assert response.status_code == status.HTTP_200_OK
     assert len(queries) == 15
 
 
@@ -304,16 +312,12 @@ def test_serials(serial):
 def test_serials_count_queries(session):
     ''' Short, i.e. do not fetch seasons '''
 
-    factories.SerialFactory.create_batch(
-        2,
-        seasons=2,
-        seasons__episodes=2,
-        content=factories.ContentFactory(countries=1, genres=1, actors=1, directors=1)
-    )
+    factories.SerialFactory.create_batch(2)
 
     with count_queries(session.connection()) as queries:
-        client.get('/api/v1/content/serials/')
+        response = client.get('/api/v1/content/serials/')
 
+    assert response.status_code == status.HTTP_200_OK
     assert len(queries) == 5
 
 
@@ -327,9 +331,9 @@ def test_serials_no_content():
 def test_serials_pagination():
     factories.SerialFactory.create_batch(
         10,
-        seasons=1,
-        seasons__episodes=1,
-        content=factories.ContentFactory(countries=1, genres=1, actors=1, directors=1)
+        create_seasons=1,
+        create_seasons__create_episodes=1,
+        content=factories.ContentFactory(create_countries=1, create_genres=1, create_actors=1, create_directors=1)
     )
 
     response = client.get('/api/v1/content/serials/?page=1&size=3')
@@ -389,9 +393,10 @@ def test_playlist_count_queries(session, playlist):
     pk = playlist.id
 
     with count_queries(session.connection()) as queries:
-        client.get(f'/api/v1/content/playlists/{pk}/')
+        response = client.get(f'/api/v1/content/playlists/{pk}/')
 
-    assert len(queries) == 7
+    assert response.status_code == status.HTTP_200_OK
+    assert len(queries) == 3
 
 
 def test_playlist_no_content():
@@ -422,9 +427,10 @@ def test_playlists_count_queries(session):
     factories.PlaylistFactory.create_batch(2, create_playlist_items=2)
 
     with count_queries(session.connection()) as queries:
-        client.get('/api/v1/content/playlists/')
+        response = client.get('/api/v1/content/playlists/')
 
-    assert len(queries) == 22
+    assert response.status_code == status.HTTP_200_OK
+    assert len(queries) == 6
 
 
 def test_playlists_pagination():

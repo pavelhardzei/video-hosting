@@ -1,26 +1,16 @@
 from unittest.mock import patch
 
 import pytest
-from auth import utils
 from base.database.config import Base, engine
 from base.database.dependencies import session_commit_hook, session_dependency
 from base.database.mixins import BaseDBMixin
 from base.main import app
-from pytest_factoryboy import LazyFixture, register
+from pytest_factoryboy import register
 from sqlalchemy.orm import scoped_session, sessionmaker
 from tests import test_session_dependency
 from tests.auth.factories import UserProfileFactory, UserRefreshTokensFactory, UserSecurityFactory
 
 register(UserProfileFactory, 'user', email='test@test.com', username='test', is_active=True)
-
-register(UserSecurityFactory, 'user_security', access_token=LazyFixture('user_token'), user=LazyFixture('user'))
-
-register(UserRefreshTokensFactory, 'user_refresh_token', user=LazyFixture('user'))
-
-
-@pytest.fixture
-def user_token(user):
-    return utils.create_token({'id': user.id})
 
 
 @pytest.fixture(scope='module')

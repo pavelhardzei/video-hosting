@@ -19,7 +19,7 @@ class MediaSchema(OrmBaseMixin, MediaBaseSchema):
     created_at: Optional[datetime] = None
 
 
-class ContentBaseSchema(BaseModel):
+class ContentBaseSchema(OrmBaseMixin, BaseModel):
     title: str
     description: str
     year: int
@@ -34,7 +34,7 @@ class ContentBaseSchema(BaseModel):
     kinopoisk_vote_count: Optional[int] = None
 
 
-class ContentSchema(OrmBaseMixin, ContentBaseSchema):
+class ContentSchema(ContentBaseSchema):
     countries: List[ContentCountriesProxySchema]
     genres: List[ContentGenresProxySchema]
     actors: List[ContentActorsProxySchema]
@@ -53,6 +53,12 @@ class MovieSchema(OrmBaseMixin, FlattenMixin, MovieBaseSchema):
     media: MediaSchema = Field(flatten=True)
 
 
+class MovieTruncatedSchema(OrmBaseMixin, FlattenMixin, MovieBaseSchema):
+    id: int
+    content_type: MediaContentTypeEnum
+    content: ContentBaseSchema = Field(flatten=True)
+
+
 class MovieListSchema(BaseModel):
     __root__: List[MovieSchema]
 
@@ -69,6 +75,12 @@ class EpisodeSchema(OrmBaseMixin, FlattenMixin, EpisodeBaseSchema):
     media: MediaSchema = Field(flatten=True)
 
 
+class EpisodeTruncatedSchema(OrmBaseMixin, FlattenMixin, EpisodeBaseSchema):
+    id: int
+    content_type: MediaContentTypeEnum
+    content: ContentBaseSchema = Field(flatten=True)
+
+
 class SeasonBaseSchema(BaseModel):
     pass
 
@@ -81,6 +93,12 @@ class SeasonSchema(OrmBaseMixin, FlattenMixin, SeasonBaseSchema):
     episodes: List[EpisodeSchema]
 
 
+class SeasonTruncatedSchema(OrmBaseMixin, FlattenMixin, EpisodeBaseSchema):
+    id: int
+    content_type: MediaContentTypeEnum
+    content: ContentBaseSchema = Field(flatten=True)
+
+
 class SerialBaseSchema(BaseModel):
     pass
 
@@ -89,6 +107,12 @@ class SerialShortSchema(OrmBaseMixin, FlattenMixin, SerialBaseSchema):
     id: int
     content_type: MediaContentTypeEnum
     content: ContentSchema = Field(flatten=True)
+
+
+class SerialTruncatedSchema(OrmBaseMixin, FlattenMixin, SerialBaseSchema):
+    id: int
+    content_type: MediaContentTypeEnum
+    content: ContentBaseSchema = Field(flatten=True)
 
 
 class SerialShortListSchema(BaseModel):
@@ -104,28 +128,12 @@ class SerialListSchema(BaseModel):
 
 
 # PLAYLISTS
-class ContentForPlaylistSchema(OrmBaseMixin, ContentBaseSchema):
-    pass
-
-
-class MovieForPlaylistSchema(OrmBaseMixin, FlattenMixin, MovieBaseSchema):
-    id: int
-    content_type: MediaContentTypeEnum
-    content: ContentForPlaylistSchema = Field(flatten=True)
-
-
-class SerialForPlaylistSchema(OrmBaseMixin, FlattenMixin, SerialBaseSchema):
-    id: int
-    content_type: MediaContentTypeEnum
-    content: ContentForPlaylistSchema = Field(flatten=True)
-
-
 class PlaylistItemBaseSchema(BaseModel):
     pass
 
 
 class PlaylistItemSchema(OrmBaseMixin, FlattenMixin, PlaylistItemBaseSchema):
-    object: Union[MovieForPlaylistSchema, SerialForPlaylistSchema] = Field(flatten=True)
+    object: Union[MovieTruncatedSchema, SerialTruncatedSchema] = Field(flatten=True)
 
 
 class PlaylistBaseSchema(BaseModel):

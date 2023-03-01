@@ -2,11 +2,11 @@ from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
 from base.schemas.schemas import ErrorSchema
 from base.utils.pagination import Params, paginate
-from content.database.models import Movie, Playlist, Serial
+from content.database.models import Content, Movie, Playlist, Serial
 from content.schemas.content import (MovieListSchema, MovieSchema, PlaylistListSchema, PlaylistSchema, SerialSchema,
                                      SerialShortListSchema)
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session, subqueryload
+from sqlalchemy.orm import Session, joinedload, subqueryload
 
 movies_router = APIRouter(
     prefix='/movies'
@@ -21,7 +21,12 @@ playlists_router = APIRouter(
 
 @movies_router.get('/', response_model=MovieListSchema)
 def movies(params: Params = Depends(), session: Session = Depends(session_dependency)):
-    movies = session.query(Movie).order_by(Movie.id)
+    movies = session.query(Movie).options(joinedload(Movie.content).options(
+        subqueryload(Content.countries),
+        subqueryload(Content.genres),
+        subqueryload(Content.actors),
+        subqueryload(Content.directors))
+    ).order_by(Movie.id)
 
     return paginate(movies, params)
 
@@ -37,7 +42,12 @@ def movie(id: int, session: Session = Depends(session_dependency)):
 
 @serials_router.get('/', response_model=SerialShortListSchema)
 def serials(params: Params = Depends(), session: Session = Depends(session_dependency)):
-    serials = session.query(Serial).order_by(Serial.id)
+    serials = session.query(Serial).options(joinedload(Serial.content).options(
+        subqueryload(Content.countries),
+        subqueryload(Content.genres),
+        subqueryload(Content.actors),
+        subqueryload(Content.directors))
+    ).order_by(Serial.id)
 
     return paginate(serials, params)
 

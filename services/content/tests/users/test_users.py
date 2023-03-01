@@ -42,37 +42,7 @@ def test_get_library(user_library, *args):
                 'imdb_rating': movie.content.imdb_rating,
                 'imdb_vote_count': movie.content.imdb_vote_count,
                 'kinopoisk_rating': movie.content.kinopoisk_rating,
-                'kinopoisk_vote_count': movie.content.kinopoisk_vote_count,
-                'countries': [
-                    {
-                        'name': ANY,
-                        'abbr': ANY,
-                        'code': ANY,
-                        'id': ANY
-                    }
-                ],
-                'genres': [
-                    {
-                        'name': ANY,
-                        'id': ANY
-                    }
-                ],
-                'actors': [
-                    {
-                        'name': ANY,
-                        'id': ANY
-                    }
-                ],
-                'directors': [
-                    {
-                        'name': ANY,
-                        'id': ANY
-                    }
-                ],
-                'source': movie.media.source,
-                'preview': movie.media.preview,
-                'duration': movie.media.duration,
-                'created_at': movie.media.created_at.strftime(DATETIME_FMT)
+                'kinopoisk_vote_count': movie.content.kinopoisk_vote_count
             }
         }
     ]
@@ -83,12 +53,13 @@ def test_get_library_count_queries(session, *args):
     UserLibraryFactory.create_batch(3, user_id=1, library_type=LibraryTypeEnum.watch_later)
 
     with count_queries(session.connection()) as queries:
-        client.get(
+        response = client.get(
             f'/api/v1/users/me/library/{LibraryTypeEnum.watch_later}/',
             headers={'Authorization': 'Bearer Token'}
         )
 
-    assert len(queries) == 16
+    assert response.status_code == status.HTTP_200_OK
+    assert len(queries) == 4
 
 
 @patch('base.utils.dependences.authorize', lambda *args, **kwargs: {'id': 1, 'role': RoleEnum.viewer})

@@ -16,9 +16,20 @@ class UserProfile(Base, SaveDeleteDBMixin):
     role = Column(Enum(RoleEnum), default=RoleEnum.viewer)
     password = Column(String(72), nullable=False)
 
-    security = relationship('UserSecurity', back_populates='user', lazy='joined',
-                            uselist=False, cascade='all, delete')
-    refresh_tokens = relationship('UserRefreshTokens', back_populates='user', cascade='all, delete')
+    security = relationship(
+        'UserSecurity',
+        back_populates='user',
+        lazy='joined',
+        uselist=False,
+        passive_deletes=True,
+        cascade='save-update, merge, delete'
+    )
+    refresh_tokens = relationship(
+        'UserRefreshTokens',
+        back_populates='user',
+        passive_deletes=True,
+        cascade='save-update, merge, delete'
+    )
 
     def set_password(self, plain_password: str) -> None:
         self.password = utils.pwd_context.hash(plain_password)
