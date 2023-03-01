@@ -6,8 +6,8 @@ from base.schemas.enums import ErrorCodeEnum
 from grpc_module.proto.authorization_pb2 import AuthorizationRequest
 
 
-def test_service(service, user, user_security):
-    request = AuthorizationRequest(access_token=user_security.access_token)
+def test_service(service, user):
+    request = AuthorizationRequest(access_token=user.security.access_token)
     response = service.authorize(request, None)
 
     assert response.id == user.id
