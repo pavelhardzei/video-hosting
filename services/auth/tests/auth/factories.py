@@ -13,7 +13,7 @@ class UserProfileFactory(factory.alchemy.SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = 'commit'
 
     id = factory.Sequence(lambda pk: pk)
-    email = factory.Sequence(lambda _: fake.email())
+    email = fake.email()
     username = fake.user_name()
     is_active = False
     role = RoleEnum.viewer
