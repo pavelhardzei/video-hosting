@@ -5,12 +5,9 @@ from base.database.config import Base, engine
 from base.database.dependencies import session_commit_hook, session_dependency
 from base.database.mixins import BaseDBMixin
 from base.main import app
-from pytest_factoryboy import register
 from sqlalchemy.orm import scoped_session, sessionmaker
 from tests import test_session_dependency
 from tests.auth.factories import UserProfileFactory, UserRefreshTokensFactory, UserSecurityFactory
-
-register(UserProfileFactory, 'user', email='test@test.com', username='test', is_active=True)
 
 
 @pytest.fixture(scope='module')
