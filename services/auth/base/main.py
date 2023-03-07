@@ -15,7 +15,7 @@ origins = [
     'https://darktheater-app.firebaseapp.com',
     'https://darktheater.net',
     'https://docs.darktheater.net',
-    'https://darktheater.vercel.app/',
+    'https://darktheater.vercel.app',
     'http://localhost:4200',
     'http://localhost:5173'
 ]
