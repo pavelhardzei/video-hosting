@@ -2,8 +2,8 @@ from datetime import datetime
 
 from base.database.config import Base
 from base.database.mixins import SaveDeleteDBMixin
+from dark_utils.sqlalchemy_utils import generic_relationship
 from sqlalchemy import Column, DateTime, Enum, Integer, UniqueConstraint
-from sqlalchemy_utils import generic_relationship
 from users.schemas.enums import LibraryTypeEnum, UserLibraryObjectEnum
 
 
@@ -12,7 +12,7 @@ class UserLibrary(Base, SaveDeleteDBMixin):
 
     object_type = Column(Enum(UserLibraryObjectEnum), nullable=False)
     object_id = Column(Integer, nullable=False)
-    object = generic_relationship(object_type, object_id)
+    object = generic_relationship('object_type', 'object_id')
 
     user_id = Column(Integer, nullable=False)
     library_type = Column(Enum(LibraryTypeEnum), nullable=False)
