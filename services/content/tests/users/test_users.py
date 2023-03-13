@@ -59,7 +59,7 @@ def test_get_library_count_queries(session, *args):
         )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(queries) == 4
+    assert len(queries) == 1
 
 
 @patch('base.utils.dependences.authorize', lambda *args, **kwargs: {'id': 1, 'role': RoleEnum.viewer})

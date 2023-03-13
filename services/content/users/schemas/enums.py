@@ -9,8 +9,8 @@ class LibraryTypeEnum(str, enum.Enum):
 
 
 class UserLibraryObjectEnum(str, enum.Enum):
-    movie = 'Movie'
-    serial = 'Serial'
-    season = 'Season'
-    episode = 'Episode'
-    moment = 'Moment'
+    movie = 'movie'
+    serial = 'serial'
+    season = 'season'
+    episode = 'episode'
+    moment = 'moment'

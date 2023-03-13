@@ -204,4 +204,10 @@ class PlaylistItemFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = models.PlaylistItem
         sqlalchemy_session_persistence = 'commit'
 
-    object = factory.SubFactory(MovieFactory)
+    object_type = enums.PlaylistItemObjectEnum.movie
+    object_id = 1
+
+    @factory.post_generation
+    def create_object(self, create, value, **kwargs):
+        self.object = MovieFactory()
+        self.save()

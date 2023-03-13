@@ -4,9 +4,9 @@ from base.database.config import Base
 from base.database.mixins import SaveDeleteDBMixin
 from content.database.mixins import ContentMixin, MediaMixin
 from content.schemas.enums import MediaContentTypeEnum, PlaylistItemObjectEnum, PlaylistTypeEnum
+from dark_utils.sqlalchemy_utils import generic_relationship
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
-from sqlalchemy_utils import generic_relationship
 
 
 class Media(Base, SaveDeleteDBMixin):
@@ -232,4 +232,4 @@ class PlaylistItem(Base, SaveDeleteDBMixin):
 
     object_type = Column(Enum(PlaylistItemObjectEnum), nullable=False)
     object_id = Column(Integer, nullable=False)
-    object = generic_relationship(object_type, object_id)
+    object = generic_relationship('object_type', 'object_id')
