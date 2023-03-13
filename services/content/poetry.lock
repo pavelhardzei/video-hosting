@@ -391,7 +391,7 @@ sqlalchemy = "^2.0.4"
 type = "git"
 url = "https://git@github.com/darkguin/dark-utils.git"
 reference = "main"
-resolved_reference = "860068346740c95afaa8658657ab897579cfd619"
+resolved_reference = "72220ff7afc774cada19fbe7eb024092c13bb98b"
 
 [[package]]
 name = "decorator"
