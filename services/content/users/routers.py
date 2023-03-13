@@ -3,8 +3,10 @@ from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
 from base.utils.dependences import current_user_data
 from base.utils.pagination import Params, paginate
+from content.database.models import Episode, Movie, Season, Serial
+from dark_utils.sqlalchemy_utils import attach_relationship
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from users.database.models import UserLibrary
 from users.schemas import schemas
 from users.schemas.enums import LibraryTypeEnum
@@ -22,7 +24,17 @@ def get_library(
     user_data: dict = Depends(current_user_data),
     session: Session = Depends(session_dependency)
 ):
-    library = session.query(UserLibrary).filter(
+    attach_relationship(UserLibrary, Movie)
+    attach_relationship(UserLibrary, Serial)
+    attach_relationship(UserLibrary, Season)
+    attach_relationship(UserLibrary, Episode)
+
+    library = session.query(UserLibrary).options(
+        joinedload(UserLibrary._object_movie),
+        joinedload(UserLibrary._object_serial),
+        joinedload(UserLibrary._object_season),
+        joinedload(UserLibrary._object_episode)
+    ).filter(
         UserLibrary.user_id == user_data['id'],
         UserLibrary.library_type == library_type
     ).order_by(UserLibrary.id)

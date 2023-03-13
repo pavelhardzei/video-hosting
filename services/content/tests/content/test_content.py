@@ -430,7 +430,7 @@ def test_playlists_count_queries(session):
         response = client.get('/api/v1/content/playlists/')
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(queries) == 6
+    assert len(queries) == 2
 
 
 def test_playlists_pagination():
