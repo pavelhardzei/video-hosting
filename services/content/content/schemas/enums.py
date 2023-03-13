@@ -10,8 +10,8 @@ class MediaContentTypeEnum(str, enum.Enum):
 
 
 class PlaylistItemObjectEnum(str, enum.Enum):
-    movie = 'Movie'
-    serial = 'Serial'
+    movie = 'movie'
+    serial = 'serial'
 
 
 class PlaylistTypeEnum(str, enum.Enum):

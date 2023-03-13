@@ -8,13 +8,13 @@ authors = ["pavelhardzei <pavelgordei11@gmail.com>"]
 python = "^3.10"
 fastapi = "^0.85.0"
 uvicorn = "^0.18.3"
-SQLAlchemy = "^1.4.41"
+sqlalchemy = "^2.0.4"
 alembic = "^1.8.1"
 psycopg2-binary = "^2.9.3"
 alembic-autogen-check = "^1.1.1"
 grpcio = "^1.50.0"
 grpcio-tools = "^1.50.0"
-SQLAlchemy-Utils = "^0.38.3"
+dark-utils = {git = "https://git@github.com/darkguin/dark-utils.git", rev = "main"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.3"
