@@ -5,7 +5,7 @@ from base.utils.pagination import Params, paginate
 from content.database.models import Content, Movie, Playlist, PlaylistItem, Serial
 from content.schemas.content import (MovieListSchema, MovieSchema, PlaylistListSchema, PlaylistSchema, SerialSchema,
                                      SerialShortListSchema)
-from dark_utils.sqlalchemy_utils import attach_relationship
+from dark_utils.sqlalchemy_utils import attach_relationships
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session, joinedload, subqueryload
 
@@ -64,8 +64,7 @@ def serial(id: int, session: Session = Depends(session_dependency)):
 
 @playlists_router.get('/', response_model=PlaylistListSchema)
 def playlists(params: Params = Depends(), session: Session = Depends(session_dependency)):
-    attach_relationship(PlaylistItem, Movie)
-    attach_relationship(PlaylistItem, Serial)
+    attach_relationships(PlaylistItem, [Movie, Serial])
 
     playlists = session.query(Playlist).options(
         subqueryload(Playlist.playlist_items).options(

@@ -4,7 +4,7 @@ from base.permissions import check_permissions
 from base.utils.dependences import current_user_data
 from base.utils.pagination import Params, paginate
 from content.database.models import Episode, Movie, Season, Serial
-from dark_utils.sqlalchemy_utils import attach_relationship
+from dark_utils.sqlalchemy_utils import attach_relationships
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session, joinedload
 from users.database.models import UserLibrary
@@ -24,10 +24,7 @@ def get_library(
     user_data: dict = Depends(current_user_data),
     session: Session = Depends(session_dependency)
 ):
-    attach_relationship(UserLibrary, Movie)
-    attach_relationship(UserLibrary, Serial)
-    attach_relationship(UserLibrary, Season)
-    attach_relationship(UserLibrary, Episode)
+    attach_relationships(UserLibrary, [Movie, Serial, Season, Episode])
 
     library = session.query(UserLibrary).options(
         joinedload(UserLibrary._object_movie),
