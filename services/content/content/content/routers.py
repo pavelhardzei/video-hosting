@@ -5,8 +5,8 @@ from base.permissions import check_permissions
 from base.schemas.schemas import ErrorSchema
 from base.utils.pagination import PaginationParams
 from content.content.filters import MovieFilter
-from content.database.models import (Actor, Content, ContentActors, ContentCountries, ContentDirectors, ContentGenres,
-                                     Country, Director, Genre, Movie, Playlist, PlaylistItem, Serial)
+from content.database.models import (Content, ContentActors, ContentCountries, ContentDirectors, ContentGenres, Movie,
+                                     Playlist, PlaylistItem, Serial)
 from content.schemas.content import (MovieListSchema, MovieSchema, PlaylistListSchema, PlaylistSchema, SerialSchema,
                                      SerialShortListSchema)
 from dark_utils.fastapi.filters import FilterDepends
@@ -32,11 +32,12 @@ def movies(
     movie_filter: Annotated[MovieFilter, FilterDepends(MovieFilter)]
 ):
     movies = (
-        session.query(Movie).join(Movie.content)
-        .outerjoin(ContentCountries).outerjoin(Country)
-        .outerjoin(ContentGenres).outerjoin(Genre)
-        .outerjoin(ContentActors).outerjoin(Actor)
-        .outerjoin(ContentDirectors).outerjoin(Director)
+        session.query(Movie).join(Movie.content).join(Movie.media)
+        .outerjoin(ContentCountries).outerjoin(ContentCountries.country)
+        .outerjoin(ContentGenres).outerjoin(ContentGenres.genre)
+        .outerjoin(ContentActors).outerjoin(ContentActors.actor)
+        .outerjoin(ContentDirectors).outerjoin(ContentDirectors.director)
+        .options(contains_eager(Movie.media))
         .options(contains_eager(Movie.content).options(
             selectinload(Content.countries),
             selectinload(Content.genres),

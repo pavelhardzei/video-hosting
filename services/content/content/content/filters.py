@@ -8,16 +8,12 @@ from dark_utils.fastapi.filters.contrib.sqlalchemy import Filter
 class CountryFilter(Filter):
     name__in: Optional[list[str]]
 
-    order_by: Optional[list[str]]
-
     class Constants(Filter.Constants):
         model = Country
 
 
 class DirectorFilter(Filter):
     name__in: Optional[list[str]]
-
-    order_by: Optional[list[str]]
 
     class Constants(Filter.Constants):
         model = Director
@@ -26,16 +22,12 @@ class DirectorFilter(Filter):
 class ActorFilter(Filter):
     name__in: Optional[list[str]]
 
-    order_by: Optional[list[str]]
-
     class Constants(Filter.Constants):
         model = Actor
 
 
 class GenreFilter(Filter):
     name__in: Optional[list[str]]
-
-    order_by: Optional[list[str]]
 
     class Constants(Filter.Constants):
         model = Genre
@@ -76,8 +68,6 @@ class MediaFilter(Filter):
 class MovieFilter(Filter):
     content: ContentFilter = FilterDepends(with_prefix('content', ContentFilter))
     media: MediaFilter = FilterDepends(with_prefix('media', MediaFilter))
-
-    order_by: Optional[list[str]]
 
     class Constants(Filter.Constants):
         model = Movie
