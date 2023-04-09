@@ -75,7 +75,7 @@ def content_data(countries, genres, actors, directors):
 
 @pytest.fixture
 def media_data():
-    media_duration = (1000, 2000, 3000, 4000)
+    media_duration = (1000, 2000, 3000, 3000)
     media = [MediaFactory(duration=duration) for duration in media_duration]
     return media
 
