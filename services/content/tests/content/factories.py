@@ -38,19 +38,27 @@ class ContentFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     @factory.post_generation
     def create_countries(self, create, value, **kwargs):
-        ContentCountriesFactory.create_batch(size=value or 2, country=CountryFactory(), content=self, **kwargs)
+        ContentCountriesFactory.create_batch(
+            size=value if value is not None else 2, country=CountryFactory(), content=self, **kwargs
+        )
 
     @factory.post_generation
     def create_genres(self, create, value, **kwargs):
-        ContentGenresFactory.create_batch(size=value or 2, genre=GenreFactory(), content=self, **kwargs)
+        ContentGenresFactory.create_batch(
+            size=value if value is not None else 2, genre=GenreFactory(), content=self, **kwargs
+        )
 
     @factory.post_generation
     def create_actors(self, create, value, **kwargs):
-        ContentActorsFactory.create_batch(size=value or 2, actor=ActorFactory(), content=self, **kwargs)
+        ContentActorsFactory.create_batch(
+            size=value if value is not None else 2, actor=ActorFactory(), content=self, **kwargs
+        )
 
     @factory.post_generation
     def create_directors(self, create, value, **kwargs):
-        ContentDirectorsFactory.create_batch(size=value or 2, director=DirectorFactory(), content=self, **kwargs)
+        ContentDirectorsFactory.create_batch(
+            size=value if value is not None else 2, director=DirectorFactory(), content=self, **kwargs
+        )
 
 
 class MovieFactory(factory.alchemy.SQLAlchemyModelFactory):
