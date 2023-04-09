@@ -408,6 +408,54 @@ def test_serials_pagination():
     assert len(response.json()) == 0
 
 
+@pytest.mark.parametrize(
+    'params,output_len,queries_count',
+    [
+        ['?content__title__ilike=Man', 2, 5],
+        ['?content__description__ilike=Marvel', 1, 5],
+        ['?content__year=2001', 1, 5],
+        ['?content__year__gte=2007', 3, 5],
+        ['?content__year__lte=2007', 1, 5],
+        ['?content__age_limit__lt=10', 0, 1],
+        ['?content__age_limit__gte=10', 4, 5],
+        ['?content__imdb_rating__gte=9.4', 1, 5],
+        ['?content__kinopoisk_rating__gte=9', 2, 5],
+        ['?country__name__in=Australia,Spain', 3, 5],
+        ['?director__name__in=Steven Soderbergh,Hayao Miyazaki,Quentin Tarantino', 4, 5],
+        ['?actor__name__in=Tom Cruise', 2, 5],
+        ['?genre__name__in=Horror,Drama', 2, 5],
+        ['?director__name__in=Steven Soderbergh,Hayao Miyazaki&actor__name__in=Tom Cruise', 1, 5],
+        ['?content__year__gte=2007&content__age_limit__lt=18&actor__name__in=Tom Hanks', 1, 5],
+        ['?content__kinopoisk_rating__gte=9&genre__name__in=Horror', 0, 1],
+    ]
+)
+def test_serials_filters(session, serials, params, output_len, queries_count):
+    with count_queries(session.connection()) as queries:
+        response = client.get(f'/api/v1/content/serials/{params}')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == output_len
+    assert len(queries) == queries_count
+
+
+@pytest.mark.parametrize(
+    'params,correct_ordering_ids',
+    [
+        ['?content__order_by=year', (3, 1, 2, 0)],
+        ['?content__order_by=age_limit,year', (0, 2, 3, 1)],
+        ['?content__order_by=-year', (00, 2, 1, 3)],
+    ]
+)
+def test_serials_order_by(session, serials, params, correct_ordering_ids):
+    initial_ordering_ids = [serial.id for serial in serials]
+    with count_queries(session.connection()) as queries:
+        response = client.get(f'/api/v1/content/serials/{params}')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(queries) == 5
+
+    response_ordering_ids = [item['id'] for item in response.json()]
+    assert response_ordering_ids == [initial_ordering_ids[i] for i in correct_ordering_ids]
+
+
 def test_playlist(playlist):
     response = client.get(f'/api/v1/content/playlists/{playlist.id}/')
     assert response.status_code == status.HTTP_200_OK

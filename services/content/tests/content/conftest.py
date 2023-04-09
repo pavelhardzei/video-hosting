@@ -84,3 +84,14 @@ def media_data():
 def movies(content_data, media_data):
     movies = [MovieFactory(content=content, media=media) for content, media in zip(content_data, media_data)]
     return movies
+
+
+@pytest.fixture
+def serials(content_data):
+    serials = [
+        SerialFactory(
+            content=content,
+            create_seasons=0
+        ) for content in content_data
+    ]
+    return serials

@@ -84,7 +84,7 @@ class SerialFactory(factory.alchemy.SQLAlchemyModelFactory):
             create_countries=2, create_genres=2, create_actors=2, create_directors=2)
         )
         SeasonFactory.create_batch(
-            size=value or 2,
+            size=value if value is not None else 2,
             serial=self,
             content=content,
             create_episodes=episodes,
@@ -106,7 +106,7 @@ class SeasonFactory(factory.alchemy.SQLAlchemyModelFactory):
             'content', ContentFactory(create_countries=2, create_genres=2, create_actors=2, create_directors=2)
         )
         EpisodeFactory.create_batch(
-            size=value or 2,
+            size=value if value is not None else 2,
             season=self,
             content=content,
             **kwargs
