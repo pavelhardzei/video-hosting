@@ -87,7 +87,7 @@ class Serial(Base, SaveDeleteDBMixin, ContentMixin):
 class Season(Base, SaveDeleteDBMixin, ContentMixin):
     content_type = Column(Enum(MediaContentTypeEnum), default=MediaContentTypeEnum.season)
 
-    serial_id = Column(Integer, ForeignKey('serial.id', ondelete='CASCADE'))
+    serial_id = Column(Integer, ForeignKey('serial.id', ondelete='CASCADE'), nullable=False)
 
     serial = relationship('Serial', back_populates='seasons')
     episodes = relationship(
@@ -105,7 +105,7 @@ class Season(Base, SaveDeleteDBMixin, ContentMixin):
 class Episode(Base, SaveDeleteDBMixin, ContentMixin, MediaMixin):
     content_type = Column(Enum(MediaContentTypeEnum), default=MediaContentTypeEnum.episode)
 
-    season_id = Column(Integer, ForeignKey('season.id', ondelete='CASCADE'))
+    season_id = Column(Integer, ForeignKey('season.id', ondelete='CASCADE'), nullable=False)
 
     season = relationship('Season', back_populates='episodes')
 
@@ -130,7 +130,7 @@ class Country(Base, SaveDeleteDBMixin):
 
 
 class ContentCountries(Base, SaveDeleteDBMixin, ContentMixin):
-    country_id = Column(Integer, ForeignKey('country.id', ondelete='CASCADE'))
+    country_id = Column(Integer, ForeignKey('country.id', ondelete='CASCADE'), nullable=False)
 
     country = relationship('Country', back_populates='content_countries', lazy='joined')
     content = relationship('Content', back_populates='countries')
@@ -154,7 +154,7 @@ class Genre(Base, SaveDeleteDBMixin):
 
 
 class ContentGenres(Base, SaveDeleteDBMixin, ContentMixin):
-    genre_id = Column(Integer, ForeignKey('genre.id', ondelete='CASCADE'))
+    genre_id = Column(Integer, ForeignKey('genre.id', ondelete='CASCADE'), nullable=False)
 
     genre = relationship('Genre', back_populates='content_genres', lazy='joined')
     content = relationship('Content', back_populates='genres')
@@ -178,7 +178,7 @@ class Actor(Base, SaveDeleteDBMixin):
 
 
 class ContentActors(Base, SaveDeleteDBMixin, ContentMixin):
-    actor_id = Column(Integer, ForeignKey('actor.id', ondelete='CASCADE'))
+    actor_id = Column(Integer, ForeignKey('actor.id', ondelete='CASCADE'), nullable=False)
 
     actor = relationship('Actor', back_populates='content_actors', lazy='joined')
     content = relationship('Content', back_populates='actors')
@@ -202,7 +202,7 @@ class Director(Base, SaveDeleteDBMixin):
 
 
 class ContentDirectors(Base, SaveDeleteDBMixin, ContentMixin):
-    director_id = Column(Integer, ForeignKey('director.id', ondelete='CASCADE'))
+    director_id = Column(Integer, ForeignKey('director.id', ondelete='CASCADE'), nullable=False)
 
     director = relationship('Director', back_populates='content_directors', lazy='joined')
     content = relationship('Content', back_populates='directors')
@@ -227,7 +227,7 @@ class Playlist(Base, SaveDeleteDBMixin):
 class PlaylistItem(Base, SaveDeleteDBMixin):
     __table_args__ = (UniqueConstraint('object_type', 'object_id', 'playlist_id'), )
 
-    playlist_id = Column(Integer, ForeignKey('playlist.id', ondelete='CASCADE'))
+    playlist_id = Column(Integer, ForeignKey('playlist.id', ondelete='CASCADE'), nullable=False)
     playlist = relationship('Playlist', back_populates='playlist_items')
 
     object_type = Column(Enum(PlaylistItemObjectEnum), nullable=False)
