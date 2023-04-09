@@ -1,5 +1,6 @@
 from unittest.mock import ANY
 
+import pytest
 from base.schemas.enums import ErrorCodeEnum
 from base.utils.consts import DATETIME_FMT
 from content.schemas.enums import MediaContentTypeEnum
@@ -126,6 +127,35 @@ def test_movies_pagination():
     response = client.get('/api/v1/content/movies/?page=2&size=15')
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()) == 0
+
+
+@pytest.mark.parametrize(
+    'params,count',
+    [
+        ['?content__title__ilike=Man', 2],
+        ['?content__description__ilike=Marvel', 1],
+        ['?content__year=2001', 1],
+        ['?content__year__gte=2007', 3],
+        ['?content__year__lte=2007', 1],
+        ['?content__age_limit__lt=10', 0],
+        ['?content__age_limit__gte=10', 4],
+        ['?content__imdb_rating__gte=9.4', 1],
+        ['?content__kinopoisk_rating__gte=9', 2],
+        ['?media__duration__gte=2000', 3],
+        ['?media__duration__lte=2000', 2],
+        ['?country__name__in=Australia,Spain', 3],
+        ['?director__name__in=Steven Soderbergh,Hayao Miyazaki,Quentin Tarantino', 4],
+        ['?actor__name__in=Tom Cruise', 2],
+        ['?genre__name__in=Horror,Drama', 2],
+        ['?director__name__in=Steven Soderbergh,Hayao Miyazaki&actor__name__in=Tom Cruise', 1],
+        ['?content__year__gte=2007&content__age_limit__lt=18&actor__name__in=Tom Hanks', 1],
+        ['?content__kinopoisk_rating__gte=9&genre__name__in=Horror', 0],
+    ]
+)
+def test_movies_filters(movies, params, count):
+    response = client.get(f'/api/v1/content/movies/{params}')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == count
 
 
 def test_serial():
