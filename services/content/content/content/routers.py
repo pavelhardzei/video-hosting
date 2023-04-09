@@ -12,7 +12,7 @@ from content.schemas.content import (MovieListSchema, MovieSchema, PlaylistListS
 from dark_utils.fastapi.filters import FilterDepends
 from dark_utils.sqlalchemy_utils import attach_relationships
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session, contains_eager, joinedload, selectinload, subqueryload
+from sqlalchemy.orm import Session, contains_eager, joinedload, selectinload
 
 movies_router = APIRouter(
     prefix='/movies'
@@ -68,10 +68,10 @@ def movie(id: int, session: Annotated[Session, Depends(session_dependency)]):
 @serials_router.get('/', response_model=SerialShortListSchema)
 def serials(params: Annotated[PaginationParams, Depends()], session: Annotated[Session, Depends(session_dependency)]):
     serials = session.query(Serial).options(joinedload(Serial.content).options(
-        subqueryload(Content.countries),
-        subqueryload(Content.genres),
-        subqueryload(Content.actors),
-        subqueryload(Content.directors))
+        selectinload(Content.countries),
+        selectinload(Content.genres),
+        selectinload(Content.actors),
+        selectinload(Content.directors))
     )
     serials = params.paginate(serials, Serial.id)
 
@@ -81,7 +81,7 @@ def serials(params: Annotated[PaginationParams, Depends()], session: Annotated[S
 @serials_router.get('/{id}/', response_model=SerialSchema,
                     responses={status.HTTP_400_BAD_REQUEST: {'model': ErrorSchema}})
 def serial(id: int, session: Annotated[Session, Depends(session_dependency)]):
-    serial = session.query(Serial).options(subqueryload(Serial.seasons)).filter(Serial.id == id).first()
+    serial = session.query(Serial).options(selectinload(Serial.seasons)).filter(Serial.id == id).first()
     check_permissions(serial, [])
 
     return serial
@@ -95,7 +95,7 @@ def playlists(
     attach_relationships(PlaylistItem, [Movie, Serial])
 
     playlists = session.query(Playlist).options(
-        subqueryload(Playlist.playlist_items).options(
+        selectinload(Playlist.playlist_items).options(
             joinedload(PlaylistItem._object_movie),
             joinedload(PlaylistItem._object_serial)
         )
@@ -107,7 +107,7 @@ def playlists(
 
 @playlists_router.get('/{id}/', response_model=PlaylistSchema)
 def playlist(id: int, session: Annotated[Session, Depends(session_dependency)]):
-    playlist = session.query(Playlist).options(subqueryload(Playlist.playlist_items)).filter(Playlist.id == id).first()
+    playlist = session.query(Playlist).options(selectinload(Playlist.playlist_items)).filter(Playlist.id == id).first()
     check_permissions(playlist, [])
 
     return playlist
