@@ -1,13 +1,18 @@
+from typing import Annotated
+
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
 from base.schemas.schemas import ErrorSchema
-from base.utils.pagination import Params, paginate
-from content.database.models import Content, Movie, Playlist, PlaylistItem, Serial
+from base.utils.pagination import PaginationParams
+from content.content.filters import MovieFilter
+from content.database.models import (Actor, Content, ContentActors, ContentCountries, ContentDirectors, ContentGenres,
+                                     Country, Director, Genre, Movie, Playlist, PlaylistItem, Serial)
 from content.schemas.content import (MovieListSchema, MovieSchema, PlaylistListSchema, PlaylistSchema, SerialSchema,
                                      SerialShortListSchema)
+from dark_utils.fastapi.filters import FilterDepends
 from dark_utils.sqlalchemy_utils import attach_relationships
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session, joinedload, subqueryload
+from sqlalchemy.orm import Session, contains_eager, joinedload, selectinload, subqueryload
 
 movies_router = APIRouter(
     prefix='/movies'
@@ -21,19 +26,38 @@ playlists_router = APIRouter(
 
 
 @movies_router.get('/', response_model=MovieListSchema)
-def movies(params: Params = Depends(), session: Session = Depends(session_dependency)):
-    movies = session.query(Movie).options(joinedload(Movie.content).options(
-        subqueryload(Content.countries),
-        subqueryload(Content.genres),
-        subqueryload(Content.actors),
-        subqueryload(Content.directors))
-    ).order_by(Movie.id)
+def movies(
+    params: Annotated[PaginationParams, Depends()],
+    session: Annotated[Session, Depends(session_dependency)],
+    movie_filter: Annotated[MovieFilter, FilterDepends(MovieFilter)]
+):
+    movies = (
+        session.query(Movie).join(Movie.content)
+        .outerjoin(ContentCountries).outerjoin(Country)
+        .outerjoin(ContentGenres).outerjoin(Genre)
+        .outerjoin(ContentActors).outerjoin(Actor)
+        .outerjoin(ContentDirectors).outerjoin(Director)
+        .options(contains_eager(Movie.content).options(
+            selectinload(Content.countries),
+            selectinload(Content.genres),
+            selectinload(Content.actors),
+            selectinload(Content.directors))
+        ).distinct()
+    )
 
-    return paginate(movies, params)
+    movies = movie_filter.filter(movies)
+    movies = movie_filter.sort(movies)
+
+    movies = params.paginate(movies, Movie.id)
+
+    return movies.all()
 
 
-@movies_router.get('/{id}/', response_model=MovieSchema,
-                   responses={status.HTTP_400_BAD_REQUEST: {'model': ErrorSchema}})
+@movies_router.get(
+    '/{id}/',
+    response_model=MovieSchema,
+    responses={status.HTTP_400_BAD_REQUEST: {'model': ErrorSchema}}
+)
 def movie(id: int, session: Session = Depends(session_dependency)):
     movie = session.query(Movie).filter(Movie.id == id).first()
     check_permissions(movie, [])
@@ -42,15 +66,16 @@ def movie(id: int, session: Session = Depends(session_dependency)):
 
 
 @serials_router.get('/', response_model=SerialShortListSchema)
-def serials(params: Params = Depends(), session: Session = Depends(session_dependency)):
+def serials(params: PaginationParams = Depends(), session: Session = Depends(session_dependency)):
     serials = session.query(Serial).options(joinedload(Serial.content).options(
         subqueryload(Content.countries),
         subqueryload(Content.genres),
         subqueryload(Content.actors),
         subqueryload(Content.directors))
-    ).order_by(Serial.id)
+    )
+    serials = params.paginate(serials, Serial.id)
 
-    return paginate(serials, params)
+    return serials.all()
 
 
 @serials_router.get('/{id}/', response_model=SerialSchema,
@@ -63,7 +88,7 @@ def serial(id: int, session: Session = Depends(session_dependency)):
 
 
 @playlists_router.get('/', response_model=PlaylistListSchema)
-def playlists(params: Params = Depends(), session: Session = Depends(session_dependency)):
+def playlists(params: PaginationParams = Depends(), session: Session = Depends(session_dependency)):
     attach_relationships(PlaylistItem, [Movie, Serial])
 
     playlists = session.query(Playlist).options(
@@ -71,9 +96,10 @@ def playlists(params: Params = Depends(), session: Session = Depends(session_dep
             joinedload(PlaylistItem._object_movie),
             joinedload(PlaylistItem._object_serial)
         )
-    ).order_by(Playlist.id)
+    )
+    playlists = params.paginate(playlists, Playlist.id)
 
-    return paginate(playlists, params)
+    return playlists.all()
 
 
 @playlists_router.get('/{id}/', response_model=PlaylistSchema)
