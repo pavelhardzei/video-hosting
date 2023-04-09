@@ -1,6 +1,6 @@
 from typing import Optional
 
-from content.database.models import Actor, Content, Country, Director, Genre, Media, Movie
+from content.database.models import Actor, Content, Country, Director, Genre, Media, Movie, Serial
 from dark_utils.fastapi.filters import FilterDepends, with_prefix
 from dark_utils.fastapi.filters.contrib.sqlalchemy import Filter
 
@@ -71,3 +71,10 @@ class MovieFilter(Filter):
 
     class Constants(Filter.Constants):
         model = Movie
+
+
+class SerialFilter(Filter):
+    content: ContentFilter = FilterDepends(with_prefix('content', ContentFilter))
+
+    class Constants(Filter.Constants):
+        model = Serial

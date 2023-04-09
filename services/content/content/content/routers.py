@@ -4,11 +4,11 @@ from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
 from base.schemas.schemas import ErrorSchema
 from base.utils.pagination import PaginationParams
-from content.content.filters import MovieFilter
-from content.database.models import (Content, ContentActors, ContentCountries, ContentDirectors, ContentGenres, Movie,
-                                     Playlist, PlaylistItem, Serial)
+from content.content.filters import MovieFilter, SerialFilter
+from content.database.models import Movie, Playlist, PlaylistItem, Serial
 from content.schemas.content import (MovieListSchema, MovieSchema, PlaylistListSchema, PlaylistSchema, SerialSchema,
                                      SerialShortListSchema)
+from content.utils import prefetch_content_data
 from dark_utils.fastapi.filters import FilterDepends
 from dark_utils.sqlalchemy_utils import attach_relationships
 from fastapi import APIRouter, Depends, status
@@ -26,25 +26,13 @@ playlists_router = APIRouter(
 
 
 @movies_router.get('/', response_model=MovieListSchema)
-def movies(
+def get_movies(
     params: Annotated[PaginationParams, Depends()],
     session: Annotated[Session, Depends(session_dependency)],
     movie_filter: Annotated[MovieFilter, FilterDepends(MovieFilter)]
 ):
-    movies = (
-        session.query(Movie).join(Movie.content).join(Movie.media)
-        .outerjoin(ContentCountries).outerjoin(ContentCountries.country)
-        .outerjoin(ContentGenres).outerjoin(ContentGenres.genre)
-        .outerjoin(ContentActors).outerjoin(ContentActors.actor)
-        .outerjoin(ContentDirectors).outerjoin(ContentDirectors.director)
-        .options(contains_eager(Movie.media))
-        .options(contains_eager(Movie.content).options(
-            selectinload(Content.countries),
-            selectinload(Content.genres),
-            selectinload(Content.actors),
-            selectinload(Content.directors))
-        ).distinct()
-    )
+    movies = session.query(Movie).join(Movie.media).options(contains_eager(Movie.media))
+    movies = prefetch_content_data(movies)
 
     movies = movie_filter.filter(movies)
     movies = movie_filter.sort(movies)
@@ -59,7 +47,7 @@ def movies(
     response_model=MovieSchema,
     responses={status.HTTP_400_BAD_REQUEST: {'model': ErrorSchema}}
 )
-def movie(id: int, session: Annotated[Session, Depends(session_dependency)]):
+def get_movie(id: int, session: Annotated[Session, Depends(session_dependency)]):
     movie = session.query(Movie).filter(Movie.id == id).first()
     check_permissions(movie, [])
 
@@ -67,13 +55,17 @@ def movie(id: int, session: Annotated[Session, Depends(session_dependency)]):
 
 
 @serials_router.get('/', response_model=SerialShortListSchema)
-def serials(params: Annotated[PaginationParams, Depends()], session: Annotated[Session, Depends(session_dependency)]):
-    serials = session.query(Serial).options(joinedload(Serial.content).options(
-        selectinload(Content.countries),
-        selectinload(Content.genres),
-        selectinload(Content.actors),
-        selectinload(Content.directors))
-    )
+def get_serials(
+    params: Annotated[PaginationParams, Depends()],
+    session: Annotated[Session, Depends(session_dependency)],
+    serial_filter: Annotated[SerialFilter, FilterDepends(SerialFilter)]
+):
+    serials = session.query(Serial)
+    serials = prefetch_content_data(serials)
+
+    serials = serial_filter.filter(serials)
+    serials = serial_filter.sort(serials)
+
     serials = params.paginate(serials, Serial.id)
 
     return serials.all()
@@ -81,7 +73,7 @@ def serials(params: Annotated[PaginationParams, Depends()], session: Annotated[S
 
 @serials_router.get('/{id}/', response_model=SerialSchema,
                     responses={status.HTTP_400_BAD_REQUEST: {'model': ErrorSchema}})
-def serial(id: int, session: Annotated[Session, Depends(session_dependency)]):
+def get_serial(id: int, session: Annotated[Session, Depends(session_dependency)]):
     serial = session.query(Serial).options(selectinload(Serial.seasons)).filter(Serial.id == id).first()
     check_permissions(serial, [])
 
@@ -89,7 +81,7 @@ def serial(id: int, session: Annotated[Session, Depends(session_dependency)]):
 
 
 @playlists_router.get('/', response_model=PlaylistListSchema)
-def playlists(
+def get_playlists(
     params: Annotated[PaginationParams, Depends()],
     session: Annotated[Session, Depends(session_dependency)]
 ):
@@ -107,7 +99,7 @@ def playlists(
 
 
 @playlists_router.get('/{id}/', response_model=PlaylistSchema)
-def playlist(id: int, session: Annotated[Session, Depends(session_dependency)]):
+def get_playlist(id: int, session: Annotated[Session, Depends(session_dependency)]):
     playlist = session.query(Playlist).options(selectinload(Playlist.playlist_items)).filter(Playlist.id == id).first()
     check_permissions(playlist, [])
 
