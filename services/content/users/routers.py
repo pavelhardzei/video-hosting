@@ -2,7 +2,7 @@ from base.database import crud
 from base.database.dependencies import session_dependency
 from base.permissions import check_permissions
 from base.utils.dependences import current_user_data
-from base.utils.pagination import Params, paginate
+from base.utils.pagination import PaginationParams
 from content.database.models import Episode, Movie, Season, Serial
 from dark_utils.sqlalchemy_utils import attach_relationships
 from fastapi import APIRouter, Depends, status
@@ -20,7 +20,7 @@ router = APIRouter(
 @router.get('/library/{library_type}/', response_model=schemas.UserLibraryListSchema)
 def get_library(
     library_type: LibraryTypeEnum,
-    params: Params = Depends(),
+    params: PaginationParams = Depends(),
     user_data: dict = Depends(current_user_data),
     session: Session = Depends(session_dependency)
 ):
@@ -34,9 +34,10 @@ def get_library(
     ).filter(
         UserLibrary.user_id == user_data['id'],
         UserLibrary.library_type == library_type
-    ).order_by(UserLibrary.id)
+    )
+    library = params.paginate(library, UserLibrary.id)
 
-    return paginate(library, params)
+    return library.all()
 
 
 @router.post('/library/', response_model=schemas.UserLibrarySchema, status_code=status.HTTP_201_CREATED)
