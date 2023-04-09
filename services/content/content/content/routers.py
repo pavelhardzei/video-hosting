@@ -58,7 +58,7 @@ def movies(
     response_model=MovieSchema,
     responses={status.HTTP_400_BAD_REQUEST: {'model': ErrorSchema}}
 )
-def movie(id: int, session: Session = Depends(session_dependency)):
+def movie(id: int, session: Annotated[Session, Depends(session_dependency)]):
     movie = session.query(Movie).filter(Movie.id == id).first()
     check_permissions(movie, [])
 
@@ -66,7 +66,7 @@ def movie(id: int, session: Session = Depends(session_dependency)):
 
 
 @serials_router.get('/', response_model=SerialShortListSchema)
-def serials(params: PaginationParams = Depends(), session: Session = Depends(session_dependency)):
+def serials(params: Annotated[PaginationParams, Depends()], session: Annotated[Session, Depends(session_dependency)]):
     serials = session.query(Serial).options(joinedload(Serial.content).options(
         subqueryload(Content.countries),
         subqueryload(Content.genres),
@@ -80,7 +80,7 @@ def serials(params: PaginationParams = Depends(), session: Session = Depends(ses
 
 @serials_router.get('/{id}/', response_model=SerialSchema,
                     responses={status.HTTP_400_BAD_REQUEST: {'model': ErrorSchema}})
-def serial(id: int, session: Session = Depends(session_dependency)):
+def serial(id: int, session: Annotated[Session, Depends(session_dependency)]):
     serial = session.query(Serial).options(subqueryload(Serial.seasons)).filter(Serial.id == id).first()
     check_permissions(serial, [])
 
@@ -88,7 +88,10 @@ def serial(id: int, session: Session = Depends(session_dependency)):
 
 
 @playlists_router.get('/', response_model=PlaylistListSchema)
-def playlists(params: PaginationParams = Depends(), session: Session = Depends(session_dependency)):
+def playlists(
+    params: Annotated[PaginationParams, Depends()],
+    session: Annotated[Session, Depends(session_dependency)]
+):
     attach_relationships(PlaylistItem, [Movie, Serial])
 
     playlists = session.query(Playlist).options(
@@ -103,7 +106,7 @@ def playlists(params: PaginationParams = Depends(), session: Session = Depends(s
 
 
 @playlists_router.get('/{id}/', response_model=PlaylistSchema)
-def playlist(id: int, session: Session = Depends(session_dependency)):
+def playlist(id: int, session: Annotated[Session, Depends(session_dependency)]):
     playlist = session.query(Playlist).options(subqueryload(Playlist.playlist_items)).filter(Playlist.id == id).first()
     check_permissions(playlist, [])
 
