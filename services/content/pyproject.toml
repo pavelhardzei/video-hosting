@@ -6,7 +6,7 @@ authors = ["pavelhardzei <pavelgordei11@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.85.0"
+fastapi = "^0.95.0"
 uvicorn = "^0.18.3"
 sqlalchemy = "^2.0.4"
 alembic = "^1.8.1"
@@ -14,7 +14,8 @@ psycopg2-binary = "^2.9.3"
 alembic-autogen-check = "^1.1.1"
 grpcio = "^1.50.0"
 grpcio-tools = "^1.50.0"
-dark-utils = {git = "https://git@github.com/darkguin/dark-utils.git", rev = "main"}
+dark-utils = {git = "https://git@github.com/darkguin/dark-utils.git", tag = "v0.02"}
+httpx = "^0.23.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.3"

@@ -3,7 +3,7 @@ from base.database.dependencies import session_commit_hook
 from base.exceptions import HTTPExceptionWithCode
 from base.schemas.enums import ErrorCodeEnum
 from content.routers import router as content_router
-from fastapi import APIRouter, Depends, FastAPI, Request
+from fastapi import APIRouter, Depends, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -53,3 +53,9 @@ def http_default_exception_handler(request: Request, e: StarletteHTTPException):
     return JSONResponse(status_code=e.status_code,
                         content={'detail': e.detail, 'error_code': ErrorCodeEnum.base_error},
                         headers=e.headers)
+
+
+@app.exception_handler(Exception)
+def internal_exception_handler(request: Request, e: Exception):
+    return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        content={'detail': f'{e}', 'error_code': ErrorCodeEnum.base_error})
