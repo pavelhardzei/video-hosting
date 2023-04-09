@@ -391,8 +391,8 @@ sqlalchemy = "^2.0.4"
 [package.source]
 type = "git"
 url = "https://git@github.com/darkguin/dark-utils.git"
-reference = "v0.01"
-resolved_reference = "c88aed731b7e5c8cade8b94bfb462ab291d162ea"
+reference = "v0.02"
+resolved_reference = "e3ae0b463cac6d68685bc43dad13dce115ba42ca"
 
 [[package]]
 name = "decorator"
@@ -1576,4 +1576,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "5bf0778deab97686d36bb6b61080632b534d4660b1ae1bf5cb692d3a544963fa"
+content-hash = "1579b6b51974ec96817fa0671c0b0eefd2d2cd69c0ad40405ff71ad22cc81208"
